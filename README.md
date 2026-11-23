@@ -1,6 +1,6 @@
 # ABC Lab — Interactive Artificial Bee Colony Teaching Tool
 
-> **Live Demo:** [https://abc-lab.vercel.app](https://abc-lab.vercel.app) *(deploy placeholder)*
+> **Live Demo:** [https://abc-lab.vercel.app](https://softcomputing-steel.vercel.app/) *(deploy placeholder)*
 
 **ABC Lab** is a browser-based, zero-dependency teaching and simulation tool for the **Artificial Bee Colony (ABC)** optimization algorithm, developed by Dervis Karaboga (2005). It runs entirely on client-side vanilla HTML5, CSS3, and modern JavaScript—no libraries, no frameworks, and no build step required.
 
