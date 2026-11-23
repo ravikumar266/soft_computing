@@ -3,120 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ABC Lab — Artificial Bee Colony Teaching Tool</title>
+  <title>ABC Lab — Artificial Bee Colony Optimization Teaching Tool</title>
+
+  <!-- KaTeX for crisp mathematical formula rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
   <style>
+    /* ==========================================================================
+       ABC LAB DESIGN SYSTEM & CSS VARIABLES
+       ========================================================================== */
     :root {
-      --bg-page: #f8fafc;
-      --bg-card: #ffffff;
-      --bg-subtle: #f1f5f9;
-      --bg-accent: #fef3c7;
-      
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --text-light: #94a3b8;
-      
-      --border-color: #e2e8f0;
-      --border-focus: #f59e0b;
-      
-      --primary: #d97706;
-      --primary-hover: #b45309;
-      --primary-light: #fef3c7;
-      --primary-text: #92400e;
+      /* Theme Palette */
+      --bg-page: #FFF8E7;               /* Soft warm cream background */
+      --bg-card: #FFFFFF;               /* Crisp white cards */
+      --text-main: #3B2A1A;             /* Deep rich brown body text */
+      --text-muted: #6B5644;            /* Soft warm muted brown */
+      --border-color: #E8DCC8;          /* Warm card border */
+      --border-subtle: #F3ECE0;         /* Subtle separator */
 
-      --employed-color: #2563eb;
-      --onlooker-color: #7c3aed;
-      --scout-color: #dc2626;
-      --best-color: #059669;
+      /* Distinctive Semantic Colors */
+      --amber: #F5A524;                 /* Primary brand & Employed phase */
+      --amber-hover: #D9890E;
+      --amber-soft: #FEF3C7;
+      --deep-brown: #3B2A1A;
+      --leaf-green: #2E9E6B;            /* Accepted / Success */
+      --leaf-green-soft: #DCFCE7;
+      --coral: #E5484D;                 /* Rejected / Error */
+      --coral-soft: #FEE2E2;
+      --sky-blue: #3B82F6;              /* Active Bee selection */
+      --sky-blue-soft: #EFF6FF;
+      --partner-cyan: #06B6D4;          /* Partner Bee highlight */
+      --lavender: #7C5CFC;              /* Onlooker phase */
+      --lavender-soft: #EDE9FE;
+      --teal: #14A3A3;                  /* Scout phase */
+      --teal-soft: #CCFBF1;
 
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-      --radius: 10px;
-      --radius-sm: 6px;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      /* Phase Colors */
+      --phase-employed: #F5A524;
+      --phase-onlooker: #7C5CFC;
+      --phase-scout: #14A3A3;
+
+      /* Typography */
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --font-size-base: 17px;
+      --line-height-base: 1.65;
+
+      /* Radii & Shadows */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-card: 0 4px 20px -2px rgba(59, 42, 26, 0.08);
+      --shadow-hover: 0 8px 28px -4px rgba(59, 42, 26, 0.12);
     }
 
-    * {
+    /* Base Reset & Typography */
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
     body {
-      background-color: var(--bg-page);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      line-height: var(--line-height-base);
       color: var(--text-main);
-      font-family: var(--font-family);
-      line-height: 1.5;
-      padding: 16px;
+      background-color: var(--bg-page);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Container */
-    .app-container {
-      max-width: 1440px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    /* Accessibility Focus Outline */
+    :focus-visible {
+      outline: 3px solid var(--amber) !important;
+      outline-offset: 3px !important;
     }
 
-    /* Header */
-    header.app-header {
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ==========================================================================
+       CONTAINER & HEADER
+       ========================================================================== */
+    .app-container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header Bar */
+    .app-header {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 16px 24px;
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      box-shadow: var(--shadow-card);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
       gap: 16px;
-      box-shadow: var(--shadow-sm);
     }
 
     .header-brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
     .brand-icon {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #ffffff;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+      font-size: 2.4rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(245, 165, 36, 0.3));
     }
 
     .brand-text h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--text-main);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--deep-brown);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
+      letter-spacing: -0.02em;
     }
 
-    .brand-text .version-tag {
-      font-size: 0.72rem;
-      background: var(--primary-light);
-      color: var(--primary-text);
-      padding: 2px 8px;
+    .version-tag {
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: var(--amber-soft);
+      color: #92400E;
+      border: 1px solid #FDE68A;
+      padding: 3px 10px;
       border-radius: 999px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .brand-text p {
-      font-size: 0.85rem;
       color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 2px;
     }
 
+    /* Header Status Chips */
     .header-status-bar {
       display: flex;
       align-items: center;
@@ -125,729 +170,981 @@
     }
 
     .status-chip {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.92rem;
+      font-weight: 600;
     }
 
     .status-chip .label {
       color: var(--text-muted);
+      font-size: 0.88rem;
     }
 
     .status-chip .value {
-      font-weight: 600;
+      color: var(--deep-brown);
       font-family: var(--font-mono);
-      color: var(--text-main);
+      font-weight: 700;
     }
 
     .status-indicator {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background-color: #10b981;
+      background: var(--leaf-green);
+      box-shadow: 0 0 0 3px rgba(46, 158, 107, 0.2);
     }
 
-    /* Main 2-Column Grid Layout */
+    /* ==========================================================================
+       "HOW TO USE" STRIP
+       ========================================================================== */
+    .how-to-use-strip {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 14px 20px;
+      box-shadow: var(--shadow-card);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .how-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .how-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .how-step-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--deep-brown);
+      line-height: 1.3;
+    }
+
+    /* ==========================================================================
+       COLLAPSIBLE "WHAT IS ABC?" TUTORIAL CARD
+       ========================================================================== */
+    .what-is-abc {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .what-is-abc summary {
+      padding: 16px 24px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      color: var(--deep-brown);
+      background: #FFFDF8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .what-is-abc summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .what-is-abc summary::after {
+      content: "▾";
+      font-size: 1.2rem;
+      color: var(--amber);
+      transition: transform 0.2s ease;
+    }
+
+    .what-is-abc[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .tutorial-content {
+      padding: 20px 24px 24px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 0.96rem;
+      color: var(--text-main);
+    }
+
+    .tutorial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .tut-bee-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: #FFFFFF;
+    }
+
+    .tut-bee-card.employed {
+      border-left: 5px solid var(--phase-employed);
+      background: #FFFAF0;
+    }
+
+    .tut-bee-card.onlooker {
+      border-left: 5px solid var(--phase-onlooker);
+      background: #FAF8FF;
+    }
+
+    .tut-bee-card.scout {
+      border-left: 5px solid var(--phase-scout);
+      background: #F0FCFC;
+    }
+
+    .tut-bee-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tut-math-pill {
+      font-family: var(--font-mono);
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      margin-top: 8px;
+      color: #1E293B;
+      overflow-x: auto;
+    }
+
+    /* ==========================================================================
+       TWO-COLUMN LAYOUT (DESKTOP & RESPONSIVE MOBILE)
+       ========================================================================== */
     .app-main {
       display: grid;
-      grid-template-columns: 560px 1fr;
-      gap: 20px;
+      grid-template-columns: 580px 1fr;
+      gap: 24px;
       align-items: start;
     }
 
-    /* Column Styles */
     .col-left {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      width: 560px;
+      gap: 24px;
+    }
+
+    .card-landscape-sticky {
+      position: sticky;
+      top: 16px;
+      z-index: 10;
     }
 
     .col-right {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      min-width: 0; /* Prevents overflow inside flex/grid */
+      gap: 24px;
     }
 
-    /* Card Base */
+    /* Common Card Styling */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .card-header {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border-color);
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #fafbfc;
+      gap: 12px;
+      background: #FFFFFF;
     }
 
     .card-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-main);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--deep-brown);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      letter-spacing: -0.01em;
     }
 
     .card-badge {
-      font-size: 0.7rem;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-weight: 600;
-      background: var(--bg-subtle);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
     }
 
     .card-body {
-      padding: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* Left Column: Controls Card */
-    .controls-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+    /* ==========================================================================
+       CARD 1: CONTROLS
+       ========================================================================== */
+    .control-group {
+      display: flex;
+      flex-direction: column;
       gap: 14px;
-      margin-bottom: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .control-group:last-of-type {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .group-heading {
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
     }
 
-    .form-group.span-2 {
-      grid-column: span 2;
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
 
     .form-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--deep-brown);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
 
-    .form-label span.hint {
-      font-weight: 400;
-      font-size: 0.72rem;
-      color: var(--text-light);
+    .form-label .hint {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
     }
 
     .form-control {
-      width: 100%;
-      height: 34px;
-      padding: 6px 10px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
+      height: 48px;
+      padding: 0 16px;
+      font-size: 1rem;
       font-family: inherit;
-      font-size: 0.85rem;
-      color: var(--text-main);
-      background-color: #ffffff;
-      outline: none;
-      transition: border-color 0.15s ease;
+      color: var(--deep-brown);
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .form-control:hover {
+      border-color: #D4C3AC;
     }
 
     .form-control:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+      border-color: var(--amber);
+      background: #FFFFFF;
     }
 
-    select.form-control {
-      cursor: pointer;
+    .form-control:disabled {
+      background: #F5EFEB;
+      color: #8C7A6B;
+      cursor: not-allowed;
+      border-color: #E2D6C6;
     }
 
-    .range-wrap {
+    .input-subtext {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Speed Slider with Slow / Fast ends */
+    .speed-slider-wrap {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
+      margin-top: 4px;
     }
 
-    .range-wrap input[type="range"] {
+    .speed-end-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    input[type="range"] {
       flex: 1;
-      accent-color: var(--primary);
+      height: 8px;
+      accent-color: var(--amber);
+      cursor: pointer;
+      direction: rtl; /* Right is fast (low ms), Left is slow (high ms) */
     }
 
-    .range-val {
-      font-size: 0.8rem;
-      font-family: var(--font-mono);
-      font-weight: 600;
-      width: 44px;
-      text-align: right;
-      color: var(--text-main);
-    }
-
-    .btn-group-primary {
+    /* Buttons */
+    .button-group-run {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
     }
 
     .btn {
-      height: 36px;
+      height: 48px;
+      padding: 0 18px;
       border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 600;
+      font-size: 0.98rem;
+      font-weight: 700;
+      font-family: inherit;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      border: 1px solid transparent;
+      gap: 8px;
       transition: all 0.15s ease;
-      text-decoration: none;
+      border: 1.5px solid transparent;
       user-select: none;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #ffffff;
+    .btn:active {
+      transform: translateY(1px);
     }
 
-    .btn-primary:hover {
-      background: var(--primary-hover);
+    /* Step is the biggest, most prominent button */
+    .btn-step-prominent {
+      background: var(--deep-brown);
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(59, 42, 26, 0.2);
     }
 
-    .btn-primary.playing {
-      background: #ea580c;
-      border-color: #c2410c;
+    .btn-step-prominent:hover {
+      background: #23170D;
     }
 
-    .btn-primary.playing:hover {
-      background: #c2410c;
+    /* Play button: Amber */
+    .btn-play-amber {
+      background: var(--amber);
+      color: #FFFFFF;
     }
 
-    .btn-outline {
-      background: #ffffff;
-      border-color: var(--border-color);
-      color: var(--text-main);
+    .btn-play-amber:hover {
+      background: var(--amber-hover);
     }
 
-    .btn-outline:hover {
-      background: var(--bg-subtle);
-      border-color: #cbd5e1;
+    .btn-play-amber.playing {
+      background: #D97706;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    :focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
+    /* Reset button: Outlined coral */
+    .btn-reset-coral {
+      background: #FFFFFF;
+      border-color: var(--coral);
+      color: var(--coral);
     }
 
-    input:disabled, select:disabled {
-      background-color: #f1f5f9;
-      color: #94a3b8;
-      cursor: not-allowed;
-      border-color: #e2e8f0;
+    .btn-reset-coral:hover {
+      background: var(--coral-soft);
     }
 
-    /* Collapsible What is ABC section */
-    .what-is-abc {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
+    .btn-self-test {
+      width: 100%;
+      height: 44px;
+      background: var(--bg-page);
+      border: 1.5px solid var(--border-color);
+      color: var(--deep-brown);
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-self-test:hover {
+      background: #F5EAE0;
+      border-color: #D4C3AC;
+    }
+
+    /* Inline Error Banner */
+    #inputError {
+      display: none;
+      background: var(--coral-soft);
+      border: 1.5px solid #FCA5A5;
+      color: #991B1B;
       padding: 12px 16px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .what-is-abc summary {
-      cursor: pointer;
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
       font-weight: 700;
-      color: var(--text-main);
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      user-select: none;
     }
 
-    .what-is-abc summary:hover {
-      color: var(--primary);
-    }
-
-    .what-is-abc-body {
+    /* Self-Test Report Container */
+    #selfTestResults {
+      display: none;
       margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-color);
-      font-size: 0.84rem;
-      color: #334155;
-      line-height: 1.6;
-    }
-
-    .what-is-abc-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .what-is-abc-card {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-    }
-
-    .what-is-abc-card h4 {
-      margin: 0 0 6px 0;
-      font-size: 0.84rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .verdict-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .verdict-tag.accepted {
-      background: #dcfce7;
-      color: #15803d;
-      border: 1px solid #86efac;
-    }
-
-    .verdict-tag.rejected {
-      background: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fca5a5;
-    }
-
-    .self-test-box {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      margin-top: 8px;
-      font-size: 0.8rem;
+      padding: 16px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
     }
 
     .self-test-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 5px 0;
-      border-bottom: 1px dashed #e2e8f0;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
     }
 
-    .self-test-item:last-child {
-      border-bottom: none;
+    .self-test-badge {
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 999px;
     }
 
     .badge-pass {
-      background: #15803d;
-      color: #ffffff;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      font-size: 0.72rem;
-      font-weight: 700;
+      background: var(--leaf-green-soft);
+      color: #166534;
+      border: 1px solid #86EFAC;
     }
 
     .badge-fail {
-      background: #b91c1c;
-      color: #ffffff;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      font-size: 0.72rem;
-      font-weight: 700;
+      background: var(--coral-soft);
+      color: #991B1B;
+      border: 1px solid #FCA5A5;
     }
 
-    .btn-danger {
-      background: #ffffff;
-      border-color: #fecaca;
-      color: #dc2626;
-    }
-
-    .btn-danger:hover {
-      background: #fef2f2;
-    }
-
-    .phase-tracker {
-      display: flex;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      background: var(--bg-subtle);
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .phase-step {
-      flex: 1;
-      text-align: center;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 6px 4px;
-      border-radius: 4px;
-      color: var(--text-muted);
-      transition: all 0.15s ease;
-    }
-
-    .phase-step.active {
-      background: #ffffff;
-      color: var(--primary-text);
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Left Column: 560x560 Canvas Card */
-    .canvas-card {
-      width: 560px;
-    }
-
-    .canvas-container {
-      width: 560px;
-      height: 560px;
-      background: #ffffff;
-      position: relative;
-      display: block;
-    }
-
-    #landscapeCanvas {
-      width: 560px;
-      height: 560px;
-      display: block;
-      background: #ffffff;
-      cursor: crosshair;
-    }
-
-    .canvas-footer {
-      padding: 10px 16px;
-      background: #fafbfc;
-      border-top: 1px solid var(--border-color);
+    /* ==========================================================================
+       CARD 2: LANDSCAPE CANVAS & TRACKER
+       ========================================================================== */
+    .landscape-top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.75rem;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    /* Phase Tabs with Phase Colors */
+    .phase-tracker-strip {
+      display: flex;
+      gap: 8px;
+    }
+
+    .phase-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 700;
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    #phaseEmployed.active {
+      background: var(--phase-employed);
+      color: #FFFFFF;
+      border-color: var(--phase-employed);
+    }
+
+    #phaseOnlooker.active {
+      background: var(--phase-onlooker);
+      color: #FFFFFF;
+      border-color: var(--phase-onlooker);
+    }
+
+    #phaseScout.active {
+      background: var(--phase-scout);
+      color: #FFFFFF;
+      border-color: var(--phase-scout);
+    }
+
+    .status-line-box {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--deep-brown);
+      background: var(--bg-page);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .canvas-container {
+      width: 100%;
+      max-width: 720px;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #landscapeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Canvas Legend Strip under Canvas */
+    .canvas-legend-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
       gap: 10px;
+      padding-top: 10px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
     }
 
-    .legend-items {
+    .canvas-legend-items {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
-    .legend-item {
-      display: flex;
+    .canvas-legend-item {
+      display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--deep-brown);
     }
 
-    .legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
+    .dot-amber { width: 12px; height: 12px; border-radius: 50%; background: #F5A524; border: 1.5px solid #FFFFFF; box-shadow: 0 0 0 1px #92400E; }
+    .dot-star { color: #EAB308; font-size: 1.1rem; }
+    .dot-arrow-green { width: 14px; height: 3px; background: #2E9E6B; }
+    .dot-arrow-red { width: 14px; height: 2px; border-top: 2px dashed #E5484D; }
+    .dot-pink-ring { width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid #EC4899; background: rgba(236,72,153,0.2); }
 
-    .dot-employed { background-color: var(--employed-color); }
-    .dot-onlooker { background-color: var(--onlooker-color); }
-    .dot-scout { background-color: var(--scout-color); }
-    .dot-best { background-color: var(--best-color); }
-
-    /* Right Column: Cards */
-    /* Explanation Card */
-    .explanation-content {
+    .hover-coords-readout {
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      color: var(--text-main);
+      font-weight: 600;
+      color: var(--deep-brown);
+      background: var(--bg-page);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       CARD 3: WHAT JUST HAPPENED (NO DUPLICATE INTRO / NO REDUNDANT BOXES)
+       ========================================================================= */
+    .what-happened-box {
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      background: #FFFFFF;
       display: flex;
       flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s ease;
+    }
+
+    .what-happened-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--deep-brown);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .what-happened-text {
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .next-phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ==========================================================================
+       CARD 4: HAND-CHECK
+       ========================================================================== */
+    .hand-check-formulas {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
     }
 
-    .explanation-callout {
-      background: #f0fdf4;
-      border-left: 3px solid #16a34a;
-      padding: 8px 12px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: 0.82rem;
-      color: #166534;
-    }
-
-    .phase-list {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .phase-box {
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 10px;
-      background: #fafbfc;
-    }
-
-    .phase-box-title {
-      font-weight: 700;
-      font-size: 0.8rem;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .phase-box p {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    /* Hand-check Card */
-    .hand-check-content {
-      font-size: 0.84rem;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .math-formula-box {
-      background: var(--bg-subtle);
+    .formula-box {
+      background: var(--bg-page);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
       padding: 10px 14px;
+    }
+
+    .formula-box-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .formula-box-math {
       font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: #1e293b;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--deep-brown);
+      overflow-x: auto;
     }
 
-    .math-row {
-      margin-bottom: 6px;
-    }
-    .math-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .hand-check-grid {
+    .hand-check-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 12px;
     }
 
-    .calc-stat {
-      background: #ffffff;
+    .stat-pill {
+      background: #FFFFFF;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      padding: 8px 12px;
+      padding: 10px 14px;
     }
 
-    .calc-stat-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+    .stat-pill-label {
+      font-size: 0.8rem;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      font-weight: 600;
     }
 
-    .calc-stat-value {
+    .stat-pill-value {
       font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--deep-brown);
+      margin-top: 2px;
     }
 
-    /* Food sources Table Card */
+    #handCheckCalcDetails {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      background: var(--bg-page);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      line-height: 1.6;
+      color: var(--deep-brown);
+    }
+
+    .verdict-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 800;
+      font-size: 0.88rem;
+      margin-top: 8px;
+    }
+
+    .verdict-tag.accepted {
+      background: var(--leaf-green-soft);
+      color: #166534;
+      border: 1.5px solid #86EFAC;
+    }
+
+    .verdict-tag.rejected {
+      background: var(--coral-soft);
+      color: #991B1B;
+      border: 1.5px solid #FCA5A5;
+    }
+
+    /* ==========================================================================
+       CARD 5: FOOD SOURCES TABLE
+       ========================================================================== */
     .table-container {
-      width: 100%;
-      overflow-x: auto;
+      max-height: 340px;
+      overflow-y: auto;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
+      background: #FFFFFF;
     }
 
-    table.food-table {
+    .food-table {
       width: 100%;
       border-collapse: collapse;
-      text-align: left;
-      font-size: 0.78rem;
+      font-size: 0.92rem;
     }
 
-    table.food-table th {
-      background: #fafbfc;
-      padding: 8px 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border-color);
-      white-space: nowrap;
+    .food-table thead th {
+      position: sticky;
+      top: 0;
+      background: #FDF9F3;
+      color: var(--deep-brown);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border-color);
+      z-index: 2;
     }
 
-    table.food-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border-color);
+    .food-table tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
       font-family: var(--font-mono);
-      color: var(--text-main);
-      white-space: nowrap;
+      text-align: right;
     }
 
-    table.food-table tr:last-child td {
-      border-bottom: none;
+    .food-table tbody td:first-child {
+      text-align: left;
+      font-weight: 700;
     }
 
-    table.food-table tr:hover td {
-      background: #f8fafc;
+    .food-table tbody tr:nth-child(even) {
+      background: #FAF7F2;
     }
 
-    .badge-status {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      font-family: var(--font-family);
+    .food-table tbody tr:hover {
+      background: #F5EFE6;
     }
 
-    .badge-active {
-      background: #dbeafe;
-      color: #1e40af;
+    .food-table tbody tr.row-best {
+      background: var(--amber-soft) !important;
+      font-weight: 700;
     }
 
-    .badge-limit {
-      background: #fee2e2;
-      color: #b91c1c;
+    .food-table tbody tr.row-active {
+      background: var(--sky-blue-soft) !important;
+      font-weight: 700;
     }
 
-    /* Convergence Chart Card */
+    /* ==========================================================================
+       CARD 6: CONVERGENCE PROGRESS CHART
+       ========================================================================== */
     .chart-container {
       width: 100%;
-      height: 180px;
+      height: 200px;
       position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: #FFFFFF;
+      overflow: hidden;
     }
 
     #chartCanvas {
       width: 100%;
-      height: 180px;
+      height: 100%;
       display: block;
     }
 
-    /* Log Card */
+    .chart-legend-strip {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-top: 8px;
+      font-size: 0.88rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--deep-brown);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* ==========================================================================
+       CARD 7: ACTIVITY LOG
+       ========================================================================== */
     .log-container {
-      background: #0f172a;
-      color: #e2e8f0;
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      height: 170px;
+      height: 280px;
       overflow-y: auto;
+      background: #231E18;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      line-height: 1.45;
+      gap: 6px;
+      border: 1px solid #3A3229;
     }
 
     .log-line {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      line-height: 1.5;
+      color: #E2D7CC;
     }
 
     .log-time {
-      color: #64748b;
-      user-select: none;
+      color: #8C7A6B;
+      flex-shrink: 0;
     }
 
     .log-tag {
-      font-weight: 600;
+      font-weight: 700;
+      flex-shrink: 0;
     }
 
-    .log-tag.info { color: #38bdf8; }
-    .log-tag.param { color: #fbbf24; }
-    .log-tag.init { color: #4ade80; }
+    .log-tag.EMPLOYED, .log-tag.employed { color: var(--phase-employed); }
+    .log-tag.ONLOOKER, .log-tag.onlooker { color: #A78BFA; }
+    .log-tag.SCOUT, .log-tag.scout { color: var(--phase-scout); }
+    .log-tag.RESET, .log-tag.init { color: #F59E0B; }
+    .log-tag.PARAM, .log-tag.param { color: #60A5FA; }
+    .log-tag.PROBLEM { color: #34D399; }
+    .log-tag.TEST { color: #F472B6; }
 
-    .log-actions {
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .app-footer {
+      max-width: 1400px;
+      width: 100%;
+      margin: 16px auto 0;
+      padding: 16px 20px 0;
+      border-top: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
     }
 
-    .btn-sm {
-      padding: 3px 8px;
-      font-size: 0.72rem;
-      height: 24px;
+    .app-footer a {
+      color: var(--deep-brown);
+      font-weight: 700;
+      text-decoration: none;
     }
 
-    /* Responsive Behavior: Phone / Tablet (< 1080px) */
-    @media (max-width: 1080px) {
+    .app-footer a:hover {
+      color: var(--amber);
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE DESIGN (360px & MOBILE PHONES)
+       ========================================================================== */
+    @media (max-width: 1100px) {
       .app-main {
         grid-template-columns: 1fr;
       }
-
-      .col-left {
-        width: 100%;
-        align-items: center;
+      .card-landscape-sticky {
+        position: static;
       }
-
-      .controls-card {
-        width: 100%;
+      .how-to-use-strip {
+        grid-template-columns: 1fr 1fr;
       }
-
-      .canvas-card {
-        width: 100%;
-        max-width: 560px;
-      }
-
-      .canvas-container {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1 / 1;
-      }
-
-      #landscapeCanvas {
-        width: 100%;
-        height: 100%;
-      }
-
-      .phase-list {
-        grid-template-columns: 1fr;
-      }
-
-      .hand-check-grid {
+      .tutorial-grid {
         grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 640px) {
-      body {
-        padding: 10px;
+      .app-container {
+        padding: 12px 12px 32px;
       }
-
-      .controls-grid {
+      .how-to-use-strip {
         grid-template-columns: 1fr;
       }
-
-      .form-group.span-2 {
-        grid-column: span 1;
+      .form-grid-2 {
+        grid-template-columns: 1fr;
       }
-
-      .btn-group-primary {
-        grid-template-columns: repeat(2, 1fr);
+      .button-group-run {
+        grid-template-columns: 1fr;
       }
-
-      .header-brand {
+      .hand-check-formulas,
+      .hand-check-stats {
+        grid-template-columns: 1fr;
+      }
+      .app-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+      }
+      .app-footer {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -855,13 +1152,14 @@
 <body>
 
   <div class="app-container">
-    <!-- Header -->
+
+    <!-- Header with Live Chips -->
     <header class="app-header">
       <div class="header-brand">
         <div class="brand-icon">🐝</div>
         <div class="brand-text">
           <h1>ABC Lab <span class="version-tag">Teaching Tool</span></h1>
-          <p>Browser-based interactive simulator for the Artificial Bee Colony optimization algorithm</p>
+          <p>Interactive simulator for the Artificial Bee Colony optimization algorithm</p>
         </div>
       </div>
       <div class="header-status-bar">
@@ -872,7 +1170,7 @@
         </div>
         <div class="status-chip">
           <span class="label">Cycle:</span>
-          <span class="value" id="cycleBadge">0 / 100</span>
+          <span class="value" id="cycleBadge">0 / 30</span>
         </div>
         <div class="status-chip">
           <span class="label">Best f(x):</span>
@@ -881,357 +1179,359 @@
       </div>
     </header>
 
-    <!-- Main Content Area: Left & Right Columns -->
-    <main class="app-main">
+    <!-- "How to use" 4-step strip -->
+    <nav class="how-to-use-strip" aria-label="Step-by-step usage guide">
+      <div class="how-step">
+        <span class="how-step-num">1</span>
+        <span class="how-step-text">Choose a problem</span>
+      </div>
+      <div class="how-step">
+        <span class="how-step-num">2</span>
+        <span class="how-step-text">Set parameters</span>
+      </div>
+      <div class="how-step">
+        <span class="how-step-num">3</span>
+        <span class="how-step-text">Press Step or Play</span>
+      </div>
+      <div class="how-step">
+        <span class="how-step-num">4</span>
+        <span class="how-step-text">Read What just happened & Hand-check</span>
+      </div>
+    </nav>
 
-      <!-- Collapsible What is ABC? Section -->
-      <details class="what-is-abc" style="grid-column: 1 / -1;" open>
-        <summary title="Click to expand or collapse the ABC algorithm tutorial">
-          <span>🐝 What is the Artificial Bee Colony (ABC) Algorithm?</span>
-          <span style="font-size: 0.78rem; font-weight: 600; color: var(--primary);">(Click to collapse / expand tutorial)</span>
-        </summary>
-        <div class="what-is-abc-body">
-          <p style="margin: 0 0 10px 0;">
-            The <strong>Artificial Bee Colony (ABC)</strong> algorithm, created by Dervis Karaboga (2005), is a swarm-intelligence metaheuristic inspired by the intelligent nectar-foraging behavior of honeybees. A swarm of simulated bees searches a multidimensional continuous space to minimize an objective function \(f(\mathbf{x})\).
-          </p>
-          <div class="what-is-abc-grid">
-            <div class="what-is-abc-card">
-              <h4 style="color: var(--employed-color);"><span>🐝</span> 1. Employed Bees</h4>
-              <p style="margin: 0; font-size: 0.8rem; color: #475569;">
-                Each employed bee is assigned to one food source \(\mathbf{x}_i\). It explores candidate solutions in its neighborhood using the candidate equation and performs <strong>greedy selection</strong>: if \(f(\mathbf{v}_i) < f(\mathbf{x}_i)\), it adopts the new position and resets trials to 0; otherwise, it keeps the old position and increments its trial counter.
-              </p>
-            </div>
-            <div class="what-is-abc-card">
-              <h4 style="color: var(--onlooker-color);"><span>👀</span> 2. Onlooker Bees</h4>
-              <p style="margin: 0; font-size: 0.8rem; color: #475569;">
-                Onlookers wait in the hive and observe the waggle dances of employed bees. They select food sources via <strong>roulette wheel selection</strong> proportional to nectar fitness \(P_i = \text{fit}_i / \sum \text{fit}_k\), giving promising sources more search effort and reinforcing quality discoveries.
-              </p>
-            </div>
-            <div class="what-is-abc-card">
-              <h4 style="color: var(--scout-color);"><span>🔍</span> 3. Scout Bees &amp; Limit</h4>
-              <p style="margin: 0; font-size: 0.8rem; color: #475569;">
-                The <strong>Limit</strong> parameter controls exploitation vs exploration. When an employed food source fails to improve after <code>trials &gt; limit</code> attempts, it is abandoned as exhausted. The bee becomes a <strong>scout</strong> and discovers a fresh uniform random position inside the bounds, escaping local traps.
-              </p>
-            </div>
+    <!-- Collapsible "What is ABC?" Section -->
+    <details class="what-is-abc" open>
+      <summary title="Click to expand or collapse the ABC algorithm tutorial">
+        <span>📖 What is the Artificial Bee Colony (ABC) Algorithm?</span>
+      </summary>
+      <div class="tutorial-content">
+        <p>
+          The <strong>Artificial Bee Colony (ABC)</strong> algorithm, created by Dervis Karaboga (2005), is a nature-inspired metaheuristic that models the collective intelligence of foraging honey bees. It searches for the global minimum of an objective function <em>f</em>(<b>x</b>) in a multi-dimensional search space.
+        </p>
+        <div class="tutorial-grid">
+          <div class="tut-bee-card employed">
+            <div class="tut-bee-title" style="color: var(--phase-employed);">🐝 1. Employed Bees</div>
+            <p>Each employed bee is assigned to a specific food source <b>x</b><sub>i</sub>. It explores nearby solutions by perturbing one coordinate with a neighbor partner <b>x</b><sub>k</sub>.</p>
+            <div class="tut-math-pill">v<sub>i,j</sub> = x<sub>i,j</sub> + φ × (x<sub>i,j</sub> − x<sub>k,j</sub>), φ ∈ [−1, 1]</div>
+            <p style="margin-top:6px; font-size:0.86rem; color:var(--text-muted);"><strong>Greedy selection:</strong> moves to candidate if <em>f</em>(<b>v</b>) &lt; <em>f</em>(<b>x</b>); otherwise increments trial counter.</p>
           </div>
-          <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 10px; font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <span><strong>Neighborhood Update Equation:</strong> <code>v_{i,j} = x_{i,j} + &phi;_{i,j} &times; (x_{i,j} - x_{k,j})</code> where \(k \ne i\), \(j \in \{1, \dots, D\}\), and \(\phi \in [-1, 1]\).</span>
-            <span><strong>Greedy Fitness:</strong> <code>fit = 1/(1+f)</code> if \(f \ge 0\), else <code>1+|f|</code>.</span>
+          <div class="tut-bee-card onlooker">
+            <div class="tut-bee-title" style="color: var(--phase-onlooker);">👀 2. Onlooker Bees</div>
+            <p>Wait in the hive dance area and select food sources probabilistically proportional to nectar fitness via roulette wheel selection.</p>
+            <div class="tut-math-pill">P<sub>i</sub> = fit<sub>i</sub> / Σ fit, fit<sub>i</sub> = 1 / (1 + f<sub>i</sub>)</div>
+            <p style="margin-top:6px; font-size:0.86rem; color:var(--text-muted);">Fitter sources attract more onlookers, concentrating swarm exploitation on the most promising areas.</p>
+          </div>
+          <div class="tut-bee-card scout">
+            <div class="tut-bee-title" style="color: var(--phase-scout);">🧭 3. Scout Bees</div>
+            <p>Prevent trapping in local optima. If a food source fails to improve after <em>limit</em> trials (trials &gt; limit), it is abandoned.</p>
+            <div class="tut-math-pill">x<sub>i,j</sub> = −B + rand() × (2B), trials = 0</div>
+            <p style="margin-top:6px; font-size:0.86rem; color:var(--text-muted);">The bee becomes a scout and restarts with a new uniformly random position inside the bounds.</p>
           </div>
         </div>
-      </details>
-      
-      <!-- LEFT COLUMN -->
+      </div>
+    </details>
+
+    <!-- Main Two-Column Layout -->
+    <main class="app-main">
+
+      <!-- LEFT COLUMN: Card 1 (Controls) & Card 2 (Landscape Canvas) -->
       <div class="col-left">
-        
-        <!-- Controls Card -->
-        <section class="card controls-card" aria-label="Simulation Controls">
+
+        <!-- CARD 1: CONTROLS -->
+        <section class="card" aria-label="Algorithm Controls">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-              Controls
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              1. Controls
             </span>
-            <span class="card-badge">Parameters &amp; Stepping</span>
+            <span class="card-badge">Parameters & Run</span>
           </div>
           <div class="card-body">
-            <!-- Benchmark Problem -->
-            <div class="controls-grid">
-              <div class="form-group span-2">
-                <label class="form-label" for="problemSelect" title="Select optimization benchmark function or the fixed Textbook preset">
-                  <span>Problem</span>
+
+            <!-- Group A: Problem -->
+            <div class="control-group">
+              <div class="group-heading">A. Problem</div>
+              <div class="form-group">
+                <label class="form-label" for="problemSelect">
+                  <span>Benchmark Function</span>
                   <span class="hint" id="problemBoundsHint">Bounds: [-5, 5]</span>
                 </label>
                 <select id="problemSelect" class="form-control" title="Benchmark function: choose between standard continuous test functions or the fixed Textbook preset">
-                  <option value="textbook">Textbook example (hand-check) [Sphere, SN=4, Limit=3]</option>
-                  <option value="sphere" selected>Sphere (Bounds: [-5, 5])</option>
-                  <option value="rastrigin">Rastrigin (Bounds: [-5.12, 5.12])</option>
-                  <option value="rosenbrock">Rosenbrock (Bounds: [-2.5, 2.5])</option>
-                  <option value="ackley">Ackley (Bounds: [-5, 5])</option>
+                  <option value="textbook">Textbook example (hand-check) [Sphere, fixed start]</option>
+                  <option value="sphere" selected>Sphere (De Jong 1) [Smooth convex]</option>
+                  <option value="rastrigin">Rastrigin [Highly multimodal]</option>
+                  <option value="rosenbrock">Rosenbrock [Banana curved valley]</option>
+                  <option value="ackley">Ackley [Exponential bowl]</option>
                 </select>
-                <!-- One-line description with known minimum -->
-                <div id="problemDescription" style="font-size: 0.78rem; color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 6px 10px; margin-top: 6px; line-height: 1.4;">
+                <div id="problemDescription" style="font-size: 0.85rem; color: #1E3A8A; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 8px 12px; line-height: 1.4;">
                   Sphere function: convex, continuous, smooth unimodal surface. Known global minimum: f(0, 0) = 0 at (0, 0).
                 </div>
+                <span class="input-subtext">Selecting Textbook example fixes SN to 4 and Limit to 3 with predetermined coordinates.</span>
               </div>
+            </div>
 
-              <!-- Food sources SN -->
-              <div class="form-group">
-                <label class="form-label" for="snInput" title="Number of food sources (SN) in the colony. Equal to the number of employed bees and onlooker bees (min 2).">
-                  <span>Food sources (SN)</span>
-                  <span class="hint" id="snLockHint">Colony count</span>
-                </label>
-                <input type="number" id="snInput" class="form-control" value="10" min="2" max="100" step="1" title="Colony size (SN): number of food sources in the swarm. Each source corresponds to 1 employed bee and 1 onlooker bee. Must be at least 2.">
-              </div>
+            <!-- Group B: Parameters -->
+            <div class="control-group">
+              <div class="group-heading">B. Parameters</div>
 
-              <!-- Abandonment Limit -->
-              <div class="form-group">
-                <label class="form-label" for="limitInput" title="Abandonment limit: maximum number of consecutive unsuccessful trial moves allowed before a source is abandoned by scout bees (min 1).">
-                  <span>Limit</span>
-                  <span class="hint" id="limitLockHint">Abandonment trials</span>
-                </label>
-                <input type="number" id="limitInput" class="form-control" value="5" min="1" max="500" step="1" title="Abandonment limit: maximum consecutive failed exploitation attempts before a food source is declared exhausted and replaced by a scout bee with a random uniform position. Must be at least 1.">
-              </div>
-
-              <!-- Max Cycles -->
-              <div class="form-group">
-                <label class="form-label" for="maxCyclesInput" title="Maximum optimization cycles: stopping criterion for the algorithm (min 1).">
-                  <span>Max cycles</span>
-                  <span class="hint">Stopping criterion</span>
-                </label>
-                <input type="number" id="maxCyclesInput" class="form-control" value="30" min="1" max="1000" step="1" title="Maximum cycles: total number of ABC optimization cycles to execute before stopping automatically. Must be at least 1.">
-              </div>
-
-              <!-- Seed -->
-              <div class="form-group">
-                <label class="form-label" for="seedInput" title="PRNG Seed: positive integer for mulberry32 pseudo-random number generator ensuring 100% reproducible experiments.">
-                  <span>Seed</span>
-                  <span class="hint">Reproducible PRNG</span>
-                </label>
-                <input type="number" id="seedInput" class="form-control" value="1" min="0" max="2147483647" step="1" title="PRNG Seed: positive integer for mulberry32 generator. The same seed produces identical random sequences, candidate partners, phi perturbations, and initial source coordinates.">
-              </div>
-
-              <!-- Simulation Speed -->
-              <div class="form-group span-2">
-                <label class="form-label" for="speedSlider" title="Cycle delay slider: time delay in milliseconds between automated simulation steps during playback.">
-                  <span>Cycle Delay</span>
-                  <span class="range-val" id="speedValueDisplay">100ms</span>
-                </label>
-                <div class="range-wrap">
-                  <input type="range" id="speedSlider" min="20" max="1000" step="20" value="100" title="Cycle Delay: slider regulating execution speed in milliseconds (20ms to 1000ms). Adjusts immediately during Play without restarting.">
-                </div>
-              </div>
-
-              <!-- Step Granularity: Phase vs Single bee -->
-              <div class="form-group span-2">
-                <label class="form-label" for="granularitySelect" title="Select whether Step executes an entire colony phase or a single individual bee move">
-                  <span>Step Granularity</span>
-                  <span class="hint" id="granularityHint">Phase (Full Colony)</span>
-                </label>
-                <select id="granularitySelect" class="form-control" title="Granularity: In Phase mode, Step runs the whole colony phase. In Single bee mode, Step advances exactly one bee at a time, highlighting it and partner k on the canvas.">
-                  <option value="phase" selected>Phase (Full colony)</option>
-                  <option value="bee">Single bee (Step-by-step)</option>
-                </select>
-              </div>
-
-              <!-- Compare with Random Search Toggle -->
-              <div class="form-group span-2" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <div>
-                  <label for="toggleRandomSearch" style="font-size: 0.84rem; font-weight: 600; color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Compare with random search: runs pure uniform random search with identical evaluations">
-                    <span>📊 Compare with Random Search</span>
+              <div class="form-grid-2">
+                <!-- Food Sources (SN) -->
+                <div class="form-group">
+                  <label class="form-label" for="snInput" title="Colony size SN (number of food sources). Must be >= 2.">
+                    <span>Food sources (SN)</span>
+                    <span class="hint" id="snLockHint" style="display:none; color:#B45309;">(Locked: 4)</span>
                   </label>
-                  <div style="font-size: 0.74rem; color: var(--text-muted);">Plots pure uniform random search baseline with equal evaluations on convergence chart</div>
+                  <input type="number" id="snInput" class="form-control" value="10" min="2" max="100" step="1" title="Colony size (SN): number of food sources in the swarm. Each source corresponds to 1 employed bee and 1 onlooker bee. Must be at least 2.">
+                  <span class="input-subtext">Swarm size (min 2). 1 employed + 1 onlooker bee per source.</span>
                 </div>
-                <input type="checkbox" id="toggleRandomSearch" style="width: 18px; height: 18px; cursor: pointer;" title="Toggle comparison with pure random search (draws both curves on log10 convergence chart)">
+
+                <!-- Abandonment Limit -->
+                <div class="form-group">
+                  <label class="form-label" for="limitInput" title="Abandonment limit: maximum unimproved trials before scout replacement. Must be >= 1.">
+                    <span>Abandonment Limit</span>
+                    <span class="hint" id="limitLockHint" style="display:none; color:#B45309;">(Locked: 3)</span>
+                  </label>
+                  <input type="number" id="limitInput" class="form-control" value="5" min="1" max="500" step="1" title="Abandonment limit: maximum consecutive failed exploitation attempts before a food source is declared exhausted and replaced by a scout bee with a random uniform position. Must be at least 1.">
+                  <span class="input-subtext">Trials threshold (min 1) before abandoning to a scout.</span>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <!-- Max Cycles -->
+                <div class="form-group">
+                  <label class="form-label" for="maxCyclesInput">
+                    <span>Max cycles</span>
+                    <span class="hint">Stopping criterion</span>
+                  </label>
+                  <input type="number" id="maxCyclesInput" class="form-control" value="30" min="1" max="1000" step="1" title="Maximum cycles: total number of ABC optimization cycles to execute before stopping automatically. Must be at least 1.">
+                  <span class="input-subtext">Number of cycles before run completes (min 1).</span>
+                </div>
+
+                <!-- Seed -->
+                <div class="form-group">
+                  <label class="form-label" for="seedInput" title="PRNG Seed: positive integer ensuring reproducible experiments.">
+                    <span>Seed</span>
+                    <span class="hint">Mulberry32 PRNG</span>
+                  </label>
+                  <input type="number" id="seedInput" class="form-control" value="1" min="0" max="2147483647" step="1" title="PRNG Seed: positive integer for mulberry32 generator. The same seed produces identical random sequences, candidate partners, phi perturbations, and initial source coordinates.">
+                  <span class="input-subtext">Deterministic seed for 100% reproducible runs.</span>
+                </div>
+              </div>
+
+              <!-- Speed Slider -->
+              <div class="form-group">
+                <label class="form-label" for="speedSlider" title="Playback speed slider: adjust delay between steps.">
+                  <span>Speed</span>
+                  <span class="hint" id="speedValueDisplay" style="font-family: var(--font-mono); font-weight:700;">Fast (100ms)</span>
+                </label>
+                <div class="speed-slider-wrap">
+                  <span class="speed-end-label">Slow</span>
+                  <input type="range" id="speedSlider" min="50" max="1000" step="50" value="100" title="Adjust playback speed: Slow (1000ms delay) to Fast (50ms delay)">
+                  <span class="speed-end-label">Fast</span>
+                </div>
+                <span class="input-subtext">Controls automatic playback pace. Live adjustment without reset.</span>
+              </div>
+
+              <!-- Granularity & Compare Toggle -->
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="granularitySelect">
+                    <span>Granularity</span>
+                    <span class="hint" id="granularityHint">Phase</span>
+                  </label>
+                  <select id="granularitySelect" class="form-control" title="Granularity: In Phase mode, Step runs the whole colony phase. In Single bee mode, Step advances exactly one bee at a time, highlighting it and partner k on the canvas.">
+                    <option value="phase" selected>Phase (Full colony)</option>
+                    <option value="bee">Single bee (Step 1 by 1)</option>
+                  </select>
+                  <span class="input-subtext">Single bee highlights active & partner on canvas.</span>
+                </div>
+
+                <div class="form-group" style="justify-content: flex-end;">
+                  <label class="form-label" for="toggleRandomSearch" style="cursor: pointer; margin-bottom: 8px;">
+                    <span>Compare Random Search</span>
+                  </label>
+                  <div style="display: flex; align-items: center; gap: 10px; height: 48px;">
+                    <input type="checkbox" id="toggleRandomSearch" style="width: 22px; height: 22px; cursor: pointer; accent-color: var(--amber);" title="Toggle comparison with pure random search (draws both curves on log10 convergence chart)">
+                    <span style="font-size: 0.88rem; color: var(--text-muted);">Plot equal-eval baseline</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Inline Input Validation Error Message -->
-            <div id="inputError" style="display: none; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; font-size: 0.82rem; font-weight: 600;"></div>
+            <!-- Group C: Run -->
+            <div class="control-group">
+              <div class="group-heading">C. Run</div>
 
-            <!-- Action Buttons: Play/Pause, Step, Reset -->
-            <div class="btn-group-primary" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 8px;">
-              <button class="btn btn-primary" id="btnPlayPause" title="Start or Pause automatic simulation at the chosen cycle delay">
-                ▶ Play
+              <!-- Inline Validation Error -->
+              <div id="inputError"></div>
+
+              <!-- Primary Action Buttons -->
+              <div class="button-group-run">
+                <button class="btn btn-step-prominent" id="btnStep" title="Advance one phase or one single bee (depending on selected granularity)">
+                  <span>👣</span> <span>Step</span>
+                </button>
+                <button class="btn btn-play-amber" id="btnPlayPause" title="Start or Pause automatic simulation at the chosen cycle delay">
+                  <span>▶</span> <span>Play</span>
+                </button>
+                <button class="btn btn-reset-coral" id="btnReset" title="Re-initialize colony and reset run to cycle 0">
+                  <span>↺</span> <span>Reset</span>
+                </button>
+              </div>
+
+              <!-- Run Self-Test Button -->
+              <button class="btn btn-self-test" id="btnSelfTest" title="Run algorithmic verification self-test on Textbook preset with Seed 1">
+                <span>🧪</span> <span>Run Algorithm Self-Test</span>
               </button>
-              <button class="btn btn-outline" id="btnStep" title="Advance one phase or one single bee (depending on selected granularity)">
-                🐾 Step
-              </button>
-              <button class="btn btn-danger" id="btnReset" title="Re-initialize colony and reset run to cycle 0">
-                ↺ Reset
-              </button>
+
+              <!-- Self-Test Results Container -->
+              <div id="selfTestResults"></div>
             </div>
 
-            <!-- Algorithmic Verification Self-Test Button -->
-            <div style="margin-bottom: 12px;">
-              <button class="btn btn-outline" id="btnSelfTest" style="width: 100%; border-color: #cbd5e1; background: #f8fafc; font-weight: 600;" title="Run algorithmic verification self-test on Textbook preset with Seed 1">
-                🧪 Run self-test (Verify Textbook &amp; 3 Invariants)
-              </button>
-            </div>
-
-            <!-- Status Line: cycle n/max, best f = value -->
-            <div class="status-line-box" style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem;">
-              <span style="color: var(--text-muted); font-weight: 600;">Status Line:</span>
-              <span id="statusLine" style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">cycle 0/30, best f = —</span>
-            </div>
-
-            <!-- Phase Indicator Tracker -->
-            <div class="phase-tracker">
-              <div class="phase-step active" id="phaseEmployed">1. Employed</div>
-              <div class="phase-step" id="phaseOnlooker">2. Onlooker</div>
-              <div class="phase-step" id="phaseScout">3. Scout</div>
-            </div>
           </div>
         </section>
 
-        <!-- Square 560x560 Canvas Card -->
-        <section class="card canvas-card" aria-label="Search Space Landscape">
+        <!-- CARD 2: LANDSCAPE (STICKY ON DESKTOP) -->
+        <section class="card card-landscape-sticky" aria-label="Objective Function Landscape">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-              Search Space Landscape (560 &times; 560)
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              2. Landscape
             </span>
             <span class="card-badge" id="canvasDomainBadge">2D Domain [-5, 5]</span>
           </div>
+          <div class="card-body">
 
-          <div class="canvas-container">
-            <canvas id="landscapeCanvas" width="560" height="560"></canvas>
-          </div>
-
-          <div class="canvas-footer">
-            <div class="legend-items">
-              <div class="legend-item">
-                <span style="display:inline-block; width: 22px; height: 10px; border-radius: 2px; background: linear-gradient(to right, #ffffff, #0f172a); border: 1px solid #cbd5e1; vertical-align: middle;"></span>
-                <span>Heatmap</span>
+            <!-- Phase Tabs & Status Line above Canvas -->
+            <div class="landscape-top-bar">
+              <div class="phase-tracker-strip" aria-label="Current algorithmic phase">
+                <div class="phase-tab active" id="phaseEmployed">1. Employed</div>
+                <div class="phase-tab" id="phaseOnlooker">2. Onlooker</div>
+                <div class="phase-tab" id="phaseScout">3. Scout</div>
               </div>
-              <div class="legend-item">
-                <span style="display:inline-block; width: 14px; height: 14px; border-radius: 50%; background: #f59e0b; border: 1.5px solid #ffffff; box-shadow: 0 0 0 1px #92400e; vertical-align: middle; text-align: center; line-height: 12px; font-size: 8px; font-weight: 700; color: #451a03;">#</span>
-                <span>Food sources</span>
-              </div>
-              <div class="legend-item">
-                <span style="color: #eab308; font-size: 15px; vertical-align: middle; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">★</span>
-                <span style="font-weight: 600; color: #854d0e;">Best</span>
-              </div>
-              <div class="legend-item">
-                <span style="display:inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ec4899; background: rgba(236,72,153,0.25); vertical-align: middle;"></span>
-                <span style="color: #be185d; font-weight: 600;">Scout ring</span>
-              </div>
-              <div class="legend-item">
-                <span style="display:inline-block; width: 14px; height: 2px; background: #16a34a; vertical-align: middle;"></span>
-                <span style="color: #166534; font-weight: 600;">Accepted</span>
-              </div>
-              <div class="legend-item">
-                <span style="display:inline-block; width: 14px; height: 0; border-top: 2px dashed #dc2626; vertical-align: middle;"></span>
-                <span style="color: #991b1b; font-weight: 600;">Rejected</span>
+              <div class="status-line-box">
+                <span id="statusLine">cycle 0/30, best f = —</span>
               </div>
             </div>
-            <span id="canvasCoords">Hover over landscape</span>
+
+            <!-- 560x560 High-DPI Canvas with 44px inner margin -->
+            <div class="canvas-container">
+              <canvas id="landscapeCanvas" width="560" height="560"></canvas>
+            </div>
+
+            <!-- Canvas Legend Strip & Readout below Canvas -->
+            <div class="canvas-legend-strip">
+              <div class="canvas-legend-items">
+                <span class="canvas-legend-item"><span class="dot-amber"></span> Bee source</span>
+                <span class="canvas-legend-item"><span class="dot-star">★</span> Best so far</span>
+                <span class="canvas-legend-item"><span class="dot-arrow-green"></span> Accepted move</span>
+                <span class="canvas-legend-item"><span class="dot-arrow-red"></span> Rejected</span>
+                <span class="canvas-legend-item"><span class="dot-pink-ring"></span> Abandoned</span>
+              </div>
+              <div class="hover-coords-readout" id="canvasCoords">
+                Hover over landscape to inspect f(x)
+              </div>
+            </div>
+
           </div>
         </section>
 
       </div>
 
-      <!-- RIGHT COLUMN -->
+      <!-- RIGHT COLUMN: Cards 3 to 7 -->
       <div class="col-right">
 
-        <!-- 1. Explanation Card -->
-        <section class="card" aria-label="Algorithm Explanation">
+        <!-- CARD 3: WHAT JUST HAPPENED (CLEAN, NO DUPLICATE INTRO / NO REDUNDANT BOXES) -->
+        <section class="card" aria-label="Phase Explanation">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-              Explanation
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              3. What just happened
             </span>
-            <span class="card-badge" id="explanationBadge">Employed Phase</span>
+            <span class="card-badge" id="explanationBadge">Ready</span>
           </div>
           <div class="card-body">
-            <div class="explanation-content">
-              <!-- Live Plain-language Explanation Box -->
-              <div id="explanationLiveBox" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 12px 14px;">
-                <div style="font-weight: 700; color: #1e40af; font-size: 0.88rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                  <span>🐝</span> <span id="explanationLiveTitle">Employed Phase Ready</span>
-                </div>
-                <p id="explanationLiveText" style="font-size: 0.82rem; color: #1e3a8a; line-height: 1.5; margin: 0;">
-                  Click the <strong>Step</strong> button to execute the Employed Bees phase. Each bee searches locally around its food source by choosing a partner, modifying one coordinate, and applying greedy selection.
-                </p>
+            <div class="what-happened-box" id="explanationLiveBox">
+              <div class="what-happened-title">
+                <span>🐝</span> <span id="explanationLiveTitle">Colony Initialized — Ready for Cycle 1</span>
               </div>
-
-              <p>
-                <strong>Artificial Bee Colony (ABC)</strong> is a swarm-based metaheuristic introduced by Dervis Karaboga (2005), inspired by the intelligent foraging behavior of honeybee swarms.
+              <p class="what-happened-text" id="explanationLiveText">
+                Colony initialized with <strong>10 food sources</strong> (Seed: 1, Limit: 5, Max Cycles: 30). Press <strong>Step</strong> or <strong>Play</strong> to run the next phase: <strong>Employed Bees</strong>.
               </p>
-              
-              <div class="explanation-callout">
-                Each food source position <strong>xᵢ</strong> represents a candidate solution in the search space, and its nectar volume corresponds to the solution's fitness/cost value.
-              </div>
-
-              <div class="phase-list">
-                <div class="phase-box">
-                  <div class="phase-box-title" style="color: var(--employed-color);">
-                    <span>🐝</span> Employed Bees
-                  </div>
-                  <p>
-                    Associated with specific food sources. They search neighbor positions using candidate generation and perform greedy selection.
-                  </p>
-                </div>
-                <div class="phase-box">
-                  <div class="phase-box-title" style="color: var(--onlooker-color);">
-                    <span>👀</span> Onlooker Bees
-                  </div>
-                  <p>
-                    Wait in the hive, watch dance routines, and probabilistically pick promising sources proportional to nectar quality (Roulette Wheel).
-                  </p>
-                </div>
-                <div class="phase-box">
-                  <div class="phase-box-title" style="color: var(--scout-color);">
-                    <span>🧭</span> Scout Bees
-                  </div>
-                  <p>
-                    When a food source cannot be improved after <em>limit</em> trials, it is abandoned. The bee becomes a scout and finds a fresh random source.
-                  </p>
-                </div>
+              <div class="next-phase-pill" id="nextPhaseIndicator">
+                <strong>Next:</strong> Employed Bees explore local neighborhoods around assigned sources.
               </div>
             </div>
           </div>
         </section>
 
-        <!-- 2. Hand-check Card -->
+        <!-- CARD 4: HAND-CHECK ARITHMETIC VERIFICATION -->
         <section class="card" aria-label="Manual Calculation and Hand-check">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              Hand-check
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              4. Hand-check
             </span>
-            <span class="card-badge">Step-by-Step Verification</span>
+            <span class="card-badge">Arithmetic Verification</span>
           </div>
           <div class="card-body">
-            <div class="hand-check-content">
-              <p style="color: var(--text-muted); font-size: 0.82rem;">
-                Hand-check formulas let students verify individual arithmetic steps (candidate generation, fitness transformation, selection probabilities).
-              </p>
 
-              <div class="math-formula-box">
-                <div class="math-row"><strong>1. Candidate:</strong> v_{i,j} = x_{i,j} + &phi;_{i,j} &times; (x_{i,j} - x_{k,j}), &nbsp; &phi; &isin; [-1, 1]</div>
-                <div class="math-row"><strong>2. Fitness:</strong> fit_i = (f_i &ge; 0) ? 1 / (1 + f_i) : 1 + |f_i|</div>
-                <div class="math-row"><strong>3. Selection:</strong> P_i = fit_i / &sum; fit_k</div>
+            <!-- 3 Formula Reference Boxes with Clean Notation -->
+            <div class="hand-check-formulas">
+              <div class="formula-box">
+                <div class="formula-box-title">1. Candidate Generation</div>
+                <div class="formula-box-math">v<sub>i,j</sub> = x<sub>i,j</sub> + φ × (x<sub>i,j</sub> − x<sub>k,j</sub>)</div>
               </div>
-
-              <div class="hand-check-grid">
-                <div class="calc-stat">
-                  <div class="calc-stat-label">Active Source (x_i)</div>
-                  <div class="calc-stat-value" id="handCheckXi">Source #1</div>
-                </div>
-                <div class="calc-stat">
-                  <div class="calc-stat-label">Partner Source (x_k)</div>
-                  <div class="calc-stat-value" id="handCheckXk">Source #2</div>
-                </div>
-                <div class="calc-stat">
-                  <div class="calc-stat-label">Random &phi; Parameter</div>
-                  <div class="calc-stat-value" id="handCheckPhi">—</div>
-                </div>
+              <div class="formula-box">
+                <div class="formula-box-title">2. Fitness Function</div>
+                <div class="formula-box-math">fit<sub>i</sub> = (f<sub>i</sub> ≥ 0) ? 1/(1+f<sub>i</sub>) : 1+|f<sub>i</sub>|</div>
               </div>
-
-              <div id="handCheckCalcDetails" style="font-size: 0.78rem; font-family: var(--font-mono); background: #fafbfc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: #334155;">
-                Click Step to view the arithmetic calculation of Source #1's candidate solution.
+              <div class="formula-box">
+                <div class="formula-box-title">3. Selection Probability</div>
+                <div class="formula-box-math">P<sub>i</sub> = fit<sub>i</sub> / Σ fit<sub>k</sub></div>
               </div>
             </div>
+
+            <!-- Selected Bee & Partner Stat Pills -->
+            <div class="hand-check-stats">
+              <div class="stat-pill">
+                <div class="stat-pill-label">Active Source (x_i)</div>
+                <div class="stat-pill-value" id="handCheckXi">Source #1</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-pill-label">Partner Source (x_k)</div>
+                <div class="stat-pill-value" id="handCheckXk">Source #2</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-pill-label">Random Perturbation (φ)</div>
+                <div class="stat-pill-value" id="handCheckPhi">—</div>
+              </div>
+            </div>
+
+            <!-- Dynamic Arithmetic Substitution Box -->
+            <div id="handCheckCalcDetails">
+              Click <strong>Step</strong> or <strong>Play</strong> to inspect arithmetic calculations for candidate moves.
+            </div>
+
           </div>
         </section>
 
-        <!-- 3. Food sources Card (Table) -->
+        <!-- CARD 5: FOOD SOURCES TABLE -->
         <section class="card" aria-label="Colony Food Sources">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-              Food sources
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+              5. Food sources
             </span>
             <span class="card-badge" id="tableCountBadge">10 food sources</span>
           </div>
-          <div class="card-body" style="padding: 12px;">
+          <div class="card-body" style="padding: 16px 20px;">
             <div class="table-container">
               <table class="food-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>x1</th>
-                    <th>x2</th>
+                    <th>x₁</th>
+                    <th>x₂</th>
                     <th>f</th>
                     <th>fitness</th>
                     <th>probability</th>
@@ -1239,56 +1539,54 @@
                   </tr>
                 </thead>
                 <tbody id="foodSourcesTableBody">
+                  <!-- Dynamically populated rows -->
                 </tbody>
               </table>
             </div>
           </div>
         </section>
 
-        <!-- 4. Best value per cycle Card (Small Canvas) -->
-        <section class="card" aria-label="Convergence History">
+        <!-- CARD 6: PROGRESS CHART -->
+        <section class="card" aria-label="Convergence Progress Chart">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-              Best value per cycle
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              6. Progress chart
             </span>
-            <span class="card-badge">Convergence Curve</span>
+            <span class="card-badge">Best f per cycle (log₁₀)</span>
           </div>
-          <div class="card-body" style="padding: 12px;">
+          <div class="card-body">
             <div class="chart-container">
-              <canvas id="chartCanvas" width="600" height="180"></canvas>
+              <canvas id="chartCanvas" width="600" height="200"></canvas>
+            </div>
+            <!-- Legend OUTSIDE plot area with color dots -->
+            <div class="chart-legend-strip">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: var(--amber);"></span>
+                <span><strong>ABC Algorithm</strong> (Best-so-far)</span>
+              </div>
+              <div class="legend-item" id="legendRandomSearch" style="display: none;">
+                <span class="legend-dot" style="background: var(--sky-blue);"></span>
+                <span><strong>Pure Random Search</strong> (Identical evaluations)</span>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- 5. Log Card -->
+        <!-- CARD 7: ACTIVITY LOG -->
         <section class="card" aria-label="Activity Log">
           <div class="card-header">
             <span class="card-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-              Log
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              7. Activity Log
             </span>
             <div class="log-actions">
-              <button class="btn btn-outline btn-sm" id="btnClearLog">Clear</button>
+              <button class="btn btn-self-test" style="height:36px; padding: 0 14px; font-size: 0.85rem;" id="btnClearLog">Clear</button>
             </div>
           </div>
-          <div class="card-body" style="padding: 12px;">
+          <div class="card-body" style="padding: 16px 20px;">
             <div class="log-container" id="logBox">
-              <div class="log-line">
-                <span class="log-time">[00:00:00]</span>
-                <span class="log-tag init">[SYS]</span>
-                <span>ABC Lab initialized. Ready for simulation setup.</span>
-              </div>
-              <div class="log-line">
-                <span class="log-time">[00:00:00]</span>
-                <span class="log-tag param">[PARAM]</span>
-                <span>Food sources (SN): 20 | Abandonment limit: 30 | Max cycles: 100</span>
-              </div>
-              <div class="log-line">
-                <span class="log-time">[00:00:00]</span>
-                <span class="log-tag info">[INFO]</span>
-                <span>Selected benchmark: Sphere function f(x) = &Sigma; xᵢ². Domain: [-5, 5]</span>
-              </div>
+              <!-- NO hardcoded log lines! Generated dynamically from real state on load -->
             </div>
           </div>
         </section>
@@ -1296,9 +1594,20 @@
       </div>
 
     </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>ABC Lab, Soft Computing, BT2024 (IT)</div>
+      <div>
+        <a href="https://github.com/ravikumar266/soft_computing" target="_blank" rel="noopener noreferrer">
+          GitHub: ravikumar266/soft_computing ↗
+        </a>
+      </div>
+    </footer>
+
   </div>
 
-  <!-- JavaScript: UI Wire-up, Problem Definitions, Seeded PRNG, and Food Sources -->
+  <!-- JavaScript: 100% Intact Algorithm Logic, Element IDs, and Functions -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       // 1. Seeded Random Generator: mulberry32
@@ -1420,23 +1729,46 @@
       const bestValBadge = document.getElementById("bestValBadge");
       const statusLabel = document.getElementById("statusLabel");
 
-      // Logging helper: NEWEST FIRST
+      // Math Formula auto-render helper
+      function renderMath(targetEl) {
+        if (window.renderMathInElement) {
+          try {
+            renderMathInElement(targetEl || document.body, {
+              delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "\\[", right: "\\]", display: true },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "$", right: "$", display: false }
+              ],
+              throwOnError: false
+            });
+          } catch (e) {
+            // KaTeX silent fallback
+          }
+        }
+      }
+
+      // Logging helper: NEWEST FIRST with real HH:MM:SS timestamp
       function appendLog(tag, message, tagClass = "info") {
         if (!logBox) return;
-        const timeStr = new Date().toTimeString().split(" ")[0];
+        const now = new Date();
+        const timeStr = [
+          String(now.getHours()).padStart(2, '0'),
+          String(now.getMinutes()).padStart(2, '0'),
+          String(now.getSeconds()).padStart(2, '0')
+        ].join(':');
+
         const row = document.createElement("div");
         row.className = "log-line";
         row.innerHTML = `
           <span class="log-time">[${timeStr}]</span>
-          <span class="log-tag ${tagClass}">[${tag}]</span>
+          <span class="log-tag ${tag}">[${tag}]</span>
           <span>${message}</span>
         `;
-        // Insert newest entry at the top of the log
         logBox.insertBefore(row, logBox.firstChild);
-        logBox.scrollTop = 0;
       }
 
-      // Input Validation: SN >= 2, limit >= 1, maxCycles >= 1
+      // Input Validation
       function validateInputs() {
         const sn = parseInt(snInput ? snInput.value : 10, 10);
         const limit = parseInt(limitInput ? limitInput.value : 5, 10);
@@ -1473,7 +1805,7 @@
       function formatBestF(val) {
         if (typeof val !== "number" || isNaN(val)) return "—";
         if (Math.abs(val) > 0 && Math.abs(val) < 0.0001) {
-          return val.toExponential(4);
+          return val.toExponential(3);
         }
         return val.toFixed(4);
       }
@@ -1485,20 +1817,29 @@
         statusLine.textContent = `cycle ${cycleNum}/${maxCycles}, best f = ${fStr}`;
       }
 
-      // Playback Control Functions
+      // Playback Speed helpers
       function getSpeedDelay() {
         const val = parseInt(speedSlider ? speedSlider.value : 100, 10);
         return isNaN(val) || val < 10 ? 100 : val;
       }
 
+      function updateSpeedDisplay(val) {
+        let label = "Fast";
+        if (val > 500) label = "Slow";
+        else if (val > 200) label = "Medium";
+        if (speedValueDisplay) {
+          speedValueDisplay.textContent = `${label} (${val}ms)`;
+        }
+      }
+
       function updatePlayButtonUI() {
         if (!btnPlayPause) return;
         if (isPlaying) {
-          btnPlayPause.textContent = "⏸ Pause";
+          btnPlayPause.innerHTML = "<span>⏸</span> <span>Pause</span>";
           btnPlayPause.classList.add("playing");
           btnPlayPause.setAttribute("title", "Pause automatic simulation");
         } else {
-          btnPlayPause.textContent = "▶ Play";
+          btnPlayPause.innerHTML = "<span>▶</span> <span>Play</span>";
           btnPlayPause.classList.remove("playing");
           btnPlayPause.setAttribute("title", "Start automatic simulation");
         }
@@ -1553,27 +1894,43 @@
         }
       }
 
-      // Speed slider label update
-      if (speedSlider && speedValueDisplay) {
+      // Speed slider input listener
+      if (speedSlider) {
         speedSlider.addEventListener("input", (e) => {
-          speedValueDisplay.textContent = `${e.target.value}ms`;
+          updateSpeedDisplay(parseInt(e.target.value, 10));
         });
       }
 
       // Clear log handler
       if (btnClearLog && logBox) {
         btnClearLog.addEventListener("click", () => {
-          logBox.innerHTML = `
-            <div class="log-line">
-              <span class="log-time">[${new Date().toTimeString().split(' ')[0]}]</span>
-              <span class="log-tag init">[SYS]</span>
-              <span>Log cleared.</span>
-            </div>
-          `;
+          logBox.innerHTML = "";
+          appendLog("SYS", "Log cleared.", "init");
         });
       }
 
       // Dynamic coordinate & food source inspection on landscape hover
+      // Coordinate conversions using 44px inner margin:
+      const CANVAS_MARGIN = 44;
+      function toPlotX(x, bound, w) {
+        const pw = w - 2 * CANVAS_MARGIN;
+        return CANVAS_MARGIN + ((x - (-bound)) / (2 * bound)) * pw;
+      }
+      function toPlotY(y, bound, h) {
+        const ph = h - 2 * CANVAS_MARGIN;
+        return CANVAS_MARGIN + ((bound - y) / (2 * bound)) * ph;
+      }
+      function fromPlotX(px, bound, w) {
+        const pw = w - 2 * CANVAS_MARGIN;
+        const norm = Math.max(0, Math.min(1, (px - CANVAS_MARGIN) / pw));
+        return -bound + norm * (2 * bound);
+      }
+      function fromPlotY(py, bound, h) {
+        const ph = h - 2 * CANVAS_MARGIN;
+        const norm = Math.max(0, Math.min(1, (py - CANVAS_MARGIN) / ph));
+        return bound - norm * (2 * bound);
+      }
+
       if (landscapeCanvas && canvasCoords) {
         landscapeCanvas.addEventListener("mousemove", (e) => {
           const key = problemSelect ? problemSelect.value : "sphere";
@@ -1581,85 +1938,96 @@
           const bound = prob.bound;
 
           const rect = landscapeCanvas.getBoundingClientRect();
-          const scaleX = landscapeCanvas.width / rect.width;
-          const scaleY = landscapeCanvas.height / rect.height;
+          const scaleX = 560 / rect.width;
+          const scaleY = 560 / rect.height;
           const px = (e.clientX - rect.left) * scaleX;
           const py = (e.clientY - rect.top) * scaleY;
 
-          // Map canvas coordinates to domain [-bound, bound]
-          const x1 = (-bound + (px / (landscapeCanvas.width - 1)) * (2 * bound));
-          const x2 = (bound - (py / (landscapeCanvas.height - 1)) * (2 * bound));
+          const x1 = fromPlotX(px, bound, 560);
+          const x2 = fromPlotY(py, bound, 560);
 
-          // Check if hovering near a food source circle (radius ~10px)
           let hoveredSource = null;
-          for (const s of foodSources) {
-            const spx = Math.round(((s.x1 - (-bound)) / (2 * bound)) * (landscapeCanvas.width - 1));
-            const spy = Math.round(((bound - s.x2) / (2 * bound)) * (landscapeCanvas.height - 1));
+          for (let s of foodSources) {
+            const spx = toPlotX(s.x1, bound, 560);
+            const spy = toPlotY(s.x2, bound, 560);
             const dist = Math.hypot(px - spx, py - spy);
-            if (dist <= 12) {
+            if (dist <= 14) {
               hoveredSource = s;
               break;
             }
           }
 
           if (hoveredSource) {
-            canvasCoords.textContent = `Food #${hoveredSource.id}: (${hoveredSource.x1.toFixed(3)}, ${hoveredSource.x2.toFixed(3)}) | f = ${hoveredSource.f.toFixed(4)} | fit = ${hoveredSource.fitness.toFixed(4)} | P = ${hoveredSource.probability.toFixed(4)}`;
+            canvasCoords.textContent = `Food #${hoveredSource.id}: (${hoveredSource.x1.toFixed(3)}, ${hoveredSource.x2.toFixed(3)}) | f = ${hoveredSource.f.toFixed(4)} | trials = ${hoveredSource.trials}`;
           } else {
             const cost = prob.fn(x1, x2);
-            canvasCoords.textContent = `Coordinates: (${x1.toFixed(3)}, ${x2.toFixed(3)}) | f(x) = ${cost.toFixed(4)}`;
+            canvasCoords.textContent = `x₁ = ${x1.toFixed(3)}, x₂ = ${x2.toFixed(3)}, f = ${cost.toFixed(4)}`;
           }
         });
 
         landscapeCanvas.addEventListener("mouseleave", () => {
-          canvasCoords.textContent = "Hover over landscape";
+          canvasCoords.textContent = "Hover over landscape to inspect f(x)";
         });
       }
 
-      // 4. Render Problem Heatmap (560x560, low values light, high values dark, log-scaled)
+      // 4. Render Problem Heatmap (High-DPI, 44px inner margin so bees are never clipped)
       function drawProblemHeatmap(problemKey) {
         if (!landscapeCanvas) return;
         const ctx = landscapeCanvas.getContext("2d");
-        const w = landscapeCanvas.width;
-        const h = landscapeCanvas.height;
+        const dpr = window.devicePixelRatio || 1;
+        const w = 560;
+        const h = 560;
+
+        landscapeCanvas.width = Math.round(w * dpr);
+        landscapeCanvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Fill background margin area
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, w, h);
 
         const prob = PROBLEMS[problemKey] || PROBLEMS.sphere;
         const bound = prob.bound;
+        const M = CANVAS_MARGIN;
+        const pw = w - 2 * M;
+        const ph = h - 2 * M;
 
-        // Evaluate grid of function values
-        const totalPixels = w * h;
-        const rawVals = new Float64Array(totalPixels);
+        // Render heatmap on offscreen canvas for crisp scaling
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = pw;
+        offCanvas.height = ph;
+        const offCtx = offCanvas.getContext("2d");
+        const imgData = offCtx.createImageData(pw, ph);
+        const data = imgData.data;
+
+        const rawVals = new Float32Array(pw * ph);
         let minVal = Infinity;
         let maxVal = -Infinity;
 
         let idx = 0;
-        for (let py = 0; py < h; py++) {
-          const y = bound - (py / (h - 1)) * (2 * bound);
-          for (let px = 0; px < w; px++) {
-            const x = -bound + (px / (w - 1)) * (2 * bound);
-            const v = prob.fn(x, y);
-            rawVals[idx++] = v;
-            if (v < minVal) minVal = v;
-            if (v > maxVal) maxVal = v;
+        for (let py = 0; py < ph; py++) {
+          const y = bound - (py / (ph - 1)) * (2 * bound);
+          for (let px = 0; px < pw; px++) {
+            const x = -bound + (px / (pw - 1)) * (2 * bound);
+            const val = prob.fn(x, y);
+            rawVals[idx++] = val;
+            if (val < minVal) minVal = val;
+            if (val > maxVal) maxVal = val;
           }
         }
 
-        // Log-scaling: L(v) = ln(1 + (v - minVal))
-        const valRange = maxVal - minVal;
-        const logMax = valRange > 0 ? Math.log(1 + valRange) : 1;
+        const logMax = Math.log(1 + Math.max(0, maxVal - minVal)) || 1;
+        const totalPixels = pw * ph;
 
-        const imgData = ctx.createImageData(w, h);
-        const data = imgData.data;
-
-        // Render pixel colors: low values light, high values dark
         for (let i = 0; i < totalPixels; i++) {
           const v = rawVals[i];
           const logVal = Math.log(1 + Math.max(0, v - minVal));
-          const t = Math.min(1, Math.max(0, logVal / logMax)); // Normalized [0, 1]
+          const t = Math.min(1, Math.max(0, logVal / logMax));
 
-          // Gradient: t = 0 (low) -> (255, 255, 255), t = 1 (high) -> (15, 23, 42)
-          const r = Math.round(255 - t * 240);
-          const g = Math.round(255 - t * 232);
-          const b = Math.round(255 - t * 213);
+          // Gradient: light at low values -> dark slate at high values
+          const r = Math.round(255 - t * 235);
+          const g = Math.round(252 - t * 230);
+          const b = Math.round(242 - t * 215);
 
           const pIdx = i * 4;
           data[pIdx] = r;
@@ -1668,105 +2036,92 @@
           data[pIdx + 3] = 255;
         }
 
-        ctx.putImageData(imgData, 0, 0);
+        offCtx.putImageData(imgData, 0, 0);
+        ctx.drawImage(offCanvas, M, M, pw, ph);
 
-        // Draw x and y axes through zero
+        // Plot Border
+        ctx.strokeStyle = "#CBD5E1";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(M, M, pw, ph);
+
+        // Draw axes and tick labels inside the 44px margin
         drawAxesThroughZero(ctx, w, h, bound);
       }
 
       function drawAxesThroughZero(ctx, w, h, bound) {
         ctx.save();
+        const M = CANVAS_MARGIN;
+        const pw = w - 2 * M;
+        const ph = h - 2 * M;
 
-        // Pixel locations for (x = 0, y = 0)
-        const px0 = Math.round(((0 - (-bound)) / (2 * bound)) * (w - 1));
-        const py0 = Math.round(((bound - 0) / (2 * bound)) * (h - 1));
+        const px0 = Math.round(toPlotX(0, bound, w));
+        const py0 = Math.round(toPlotY(0, bound, h));
 
-        // Background subtle quarter-grid reference lines
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
+        // Subtle quarter grid lines inside plot area
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
         ctx.lineWidth = 1;
         ctx.setLineDash([3, 4]);
         [-bound / 2, bound / 2].forEach(val => {
-          const gx = Math.round(((val + bound) / (2 * bound)) * (w - 1));
-          const gy = Math.round(((bound - val) / (2 * bound)) * (h - 1));
+          const gx = Math.round(toPlotX(val, bound, w));
+          const gy = Math.round(toPlotY(val, bound, h));
           ctx.beginPath();
-          ctx.moveTo(gx, 0); ctx.lineTo(gx, h);
-          ctx.moveTo(0, gy); ctx.lineTo(w, gy);
+          ctx.moveTo(gx, M); ctx.lineTo(gx, h - M);
+          ctx.moveTo(M, gy); ctx.lineTo(w - M, gy);
           ctx.stroke();
         });
         ctx.setLineDash([]);
 
-        // Primary axes lines passing through (0, 0)
-        ctx.strokeStyle = "rgba(51, 65, 85, 0.85)";
+        // Primary axes through zero (inside plot area)
+        ctx.strokeStyle = "rgba(51, 65, 85, 0.9)";
         ctx.lineWidth = 1.5;
 
-        // Horizontal x-axis (y = 0)
+        // Horizontal axis (y = 0)
         ctx.beginPath();
-        ctx.moveTo(0, py0 + 0.5);
-        ctx.lineTo(w, py0 + 0.5);
+        ctx.moveTo(M, py0);
+        ctx.lineTo(w - M, py0);
         ctx.stroke();
 
-        // Vertical y-axis (x = 0)
+        // Vertical axis (x = 0)
         ctx.beginPath();
-        ctx.moveTo(px0 + 0.5, 0);
-        ctx.lineTo(px0 + 0.5, h);
+        ctx.moveTo(px0, M);
+        ctx.lineTo(px0, h - M);
         ctx.stroke();
 
-        // Tick marks on axes
-        ctx.strokeStyle = "rgba(30, 41, 59, 0.95)";
-        ctx.lineWidth = 1.5;
+        // Axis Tick marks and Labels strictly inside the 44px margins
+        ctx.fillStyle = "#3B2A1A";
+        ctx.font = "600 11px ui-monospace, monospace";
 
-        const ticks = [-bound, -bound / 2, bound / 2, bound];
+        const ticks = [-bound, -bound / 2, 0, bound / 2, bound];
         ticks.forEach(val => {
-          const tx = Math.round(((val + bound) / (2 * bound)) * (w - 1));
-          const ty = Math.round(((bound - val) / (2 * bound)) * (h - 1));
+          const tx = Math.round(toPlotX(val, bound, w));
+          const ty = Math.round(toPlotY(val, bound, h));
+          const valStr = val % 1 === 0 ? val.toFixed(0) : val.toFixed(1);
 
-          // Tick on x-axis
+          // X-axis tick & label (in bottom margin)
           ctx.beginPath();
-          ctx.moveTo(tx, py0 - 4);
-          ctx.lineTo(tx, py0 + 4);
+          ctx.moveTo(tx, h - M);
+          ctx.lineTo(tx, h - M + 5);
           ctx.stroke();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(valStr, tx, h - M + 8);
 
-          // Tick on y-axis
+          // Y-axis tick & label (in left margin)
           ctx.beginPath();
-          ctx.moveTo(px0 - 4, ty);
-          ctx.lineTo(px0 + 4, ty);
+          ctx.moveTo(M - 5, ty);
+          ctx.lineTo(M, ty);
           ctx.stroke();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(valStr, M - 8, ty);
         });
 
-        // Helper to draw text with contrasting halo for legibility
-        function drawLabel(text, x, y, align = "center", baseline = "middle") {
-          ctx.font = "600 11px ui-monospace, SFMono-Regular, Menlo, monospace";
-          ctx.textAlign = align;
-          ctx.textBaseline = baseline;
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
-          ctx.strokeText(text, x, y);
-          ctx.fillStyle = "#0f172a";
-          ctx.fillText(text, x, y);
-        }
-
-        const bStr = (bound % 1 === 0 ? bound.toFixed(0) : bound.toString());
-        const halfB = bound / 2;
-        const halfBStr = (halfB % 1 === 0 ? halfB.toFixed(0) : halfB.toFixed(2));
-
-        // X-axis tick labels
-        drawLabel(`-${bStr}`, 24, py0 + 14, "center");
-        drawLabel(`-${halfBStr}`, Math.round(w * 0.25), py0 + 14, "center");
-        drawLabel(`+${halfBStr}`, Math.round(w * 0.75), py0 + 14, "center");
-        drawLabel(`+${bStr}`, w - 24, py0 + 14, "center");
-
-        // Y-axis tick labels
-        drawLabel(`+${bStr}`, px0 + 18, 16, "left");
-        drawLabel(`+${halfBStr}`, px0 + 18, Math.round(h * 0.25), "left");
-        drawLabel(`-${halfBStr}`, px0 + 18, Math.round(h * 0.75), "left");
-        drawLabel(`-${bStr}`, px0 + 18, h - 16, "left");
-
-        // Zero indicator at origin
-        drawLabel("0", px0 + 8, py0 + 14, "left");
-
-        // Axis variable indicators
-        drawLabel("x₁", w - 10, py0 - 10, "right");
-        drawLabel("x₂", px0 - 10, 14, "right");
+        // Axis variable indicators in margins
+        ctx.font = "bold 12px -apple-system, sans-serif";
+        ctx.fillStyle = "#3B2A1A";
+        ctx.textAlign = "right";
+        ctx.fillText("x₁", w - 10, h - M + 8);
+        ctx.fillText("x₂", M - 10, 16);
 
         ctx.restore();
       }
@@ -1795,20 +2150,19 @@
         ctx.lineTo(cx, cy - outerRadius);
         ctx.closePath();
 
-        ctx.fillStyle = "#eab308"; // Golden star
-        ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+        ctx.fillStyle = "#F5A524"; // Amber star
+        ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
         ctx.shadowBlur = 6;
         ctx.fill();
 
         ctx.shadowColor = "transparent";
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = "#FFFFFF";
         ctx.stroke();
 
         ctx.lineWidth = 1;
-        ctx.strokeStyle = "#854d0e";
+        ctx.strokeStyle = "#92400E";
         ctx.stroke();
-
         ctx.restore();
       }
 
@@ -1816,83 +2170,67 @@
       function drawPinkRings(ctx, rings, bound, w, h) {
         if (!rings || rings.length === 0) return;
         rings.forEach(r => {
-          const px = Math.round(((r.x1 - (-bound)) / (2 * bound)) * (w - 1));
-          const py = Math.round(((bound - r.x2) / (2 * bound)) * (h - 1));
+          const px = Math.round(toPlotX(r.x1, bound, w));
+          const py = Math.round(toPlotY(r.x2, bound, h));
 
           ctx.save();
           ctx.beginPath();
           ctx.arc(px, py, 14, 0, 2 * Math.PI);
           ctx.lineWidth = 3;
-          ctx.strokeStyle = "#ec4899"; // Pink ring
+          ctx.strokeStyle = "#EC4899";
           ctx.stroke();
 
           ctx.fillStyle = "rgba(236, 72, 153, 0.22)";
           ctx.fill();
 
-          // Mark X at center
-          ctx.fillStyle = "#be185d";
-          ctx.font = "bold 9px ui-monospace, monospace";
+          ctx.fillStyle = "#BE185D";
+          ctx.font = "bold 10px ui-monospace, monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText("✕", px, py);
-
           ctx.restore();
         });
       }
 
-      // 7. Draw Candidate Move Arrows (Green if accepted, Red dashed if rejected)
+      // 7. Draw Candidate Move Arrows
       function drawMoveArrows(moves, bound) {
         if (!landscapeCanvas || !moves || moves.length === 0) return;
         const ctx = landscapeCanvas.getContext("2d");
-        const w = landscapeCanvas.width;
-        const h = landscapeCanvas.height;
+        const w = 560;
+        const h = 560;
 
         moves.forEach(m => {
-          const fromX = Math.round(((m.fromX - (-bound)) / (2 * bound)) * (w - 1));
-          const fromY = Math.round(((bound - m.fromY) / (2 * bound)) * (h - 1));
-          const toX = Math.round(((m.toX - (-bound)) / (2 * bound)) * (w - 1));
-          const toY = Math.round(((bound - m.toY) / (2 * bound)) * (h - 1));
-
-          const dist = Math.hypot(toX - fromX, toY - fromY);
-          if (dist < 1.5) return;
-
-          const angle = Math.atan2(toY - fromY, toX - fromX);
-          const headLength = 9;
+          const x1 = toPlotX(m.fromX, bound, w);
+          const y1 = toPlotY(m.fromY, bound, h);
+          const x2 = toPlotX(m.toX, bound, w);
+          const y2 = toPlotY(m.toY, bound, h);
 
           ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+
           if (m.accepted) {
-            ctx.strokeStyle = "#16a34a";
-            ctx.fillStyle = "#16a34a";
-            ctx.lineWidth = 2.2;
+            ctx.strokeStyle = "#2E9E6B"; // Leaf green
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([]);
           } else {
-            ctx.strokeStyle = "#dc2626";
-            ctx.fillStyle = "#dc2626";
-            ctx.lineWidth = 1.6;
+            ctx.strokeStyle = "#E5484D"; // Coral
+            ctx.lineWidth = 1.8;
             ctx.setLineDash([4, 4]);
           }
-
-          // Line shaft
-          ctx.beginPath();
-          ctx.moveTo(fromX, fromY);
-          ctx.lineTo(toX, toY);
           ctx.stroke();
 
           // Arrowhead
-          ctx.setLineDash([]);
+          const headLen = 8;
+          const angle = Math.atan2(y2 - y1, x2 - x1);
           ctx.beginPath();
-          ctx.moveTo(toX, toY);
-          ctx.lineTo(
-            toX - headLength * Math.cos(angle - Math.PI / 6),
-            toY - headLength * Math.sin(angle - Math.PI / 6)
-          );
-          ctx.lineTo(
-            toX - headLength * Math.cos(angle + Math.PI / 6),
-            toY - headLength * Math.sin(angle + Math.PI / 6)
-          );
+          ctx.moveTo(x2, y2);
+          ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+          ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
           ctx.closePath();
+          ctx.fillStyle = m.accepted ? "#2E9E6B" : "#E5484D";
           ctx.fill();
-
           ctx.restore();
         });
       }
@@ -1901,92 +2239,85 @@
       function drawFoodSources(sources, bound) {
         if (!landscapeCanvas || !sources || sources.length === 0) return;
         const ctx = landscapeCanvas.getContext("2d");
-        const w = landscapeCanvas.width;
-        const h = landscapeCanvas.height;
+        const w = 560;
+        const h = 560;
 
         sources.forEach(s => {
-          const px = Math.round(((s.x1 - (-bound)) / (2 * bound)) * (w - 1));
-          const py = Math.round(((bound - s.x2) / (2 * bound)) * (h - 1));
+          const px = Math.round(toPlotX(s.x1, bound, w));
+          const py = Math.round(toPlotY(s.x2, bound, h));
 
           ctx.save();
-
-          // Drop shadow for crisp visual separation on light and dark heatmap zones
-          ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
           ctx.shadowBlur = 4;
-          ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 1;
 
-          // Numbered amber circle
           ctx.beginPath();
-          ctx.arc(px, py, 10, 0, 2 * Math.PI);
-          ctx.fillStyle = "#f59e0b"; // Amber
+          ctx.arc(px, py, 11, 0, 2 * Math.PI);
+          ctx.fillStyle = "#F5A524";
           ctx.fill();
 
-          // Border stroke
           ctx.shadowColor = "transparent";
           ctx.lineWidth = 1.8;
-          ctx.strokeStyle = "#ffffff";
+          ctx.strokeStyle = "#FFFFFF";
           ctx.stroke();
 
-          // Outer ring
           ctx.lineWidth = 1;
-          ctx.strokeStyle = "#92400e";
+          ctx.strokeStyle = "#92400E";
           ctx.stroke();
 
-          // Number text inside amber circle
-          ctx.font = "bold 9px ui-monospace, SFMono-Regular, -apple-system, sans-serif";
+          ctx.font = "bold 9px ui-monospace, monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillStyle = "#451a03";
+          ctx.fillStyle = "#451A03";
           ctx.fillText(s.id.toString(), px, py + 0.5);
-
           ctx.restore();
         });
 
-        // Draw highlights for single bee mode
+        // Highlight active and partner bees in Single Bee mode
         if (highlightedBees && highlightedBees.active) {
-          const actSource = sources.find(s => s.id === highlightedBees.active);
-          if (actSource) {
-            const px = Math.round(((actSource.x1 - (-bound)) / (2 * bound)) * (w - 1));
-            const py = Math.round(((bound - actSource.x2) / (2 * bound)) * (h - 1));
+          const act = sources.find(s => s.id === highlightedBees.active);
+          if (act) {
+            const px = Math.round(toPlotX(act.x1, bound, w));
+            const py = Math.round(toPlotY(act.x2, bound, h));
             ctx.save();
             ctx.beginPath();
-            ctx.arc(px, py, 16, 0, 2 * Math.PI);
-            ctx.strokeStyle = "#2563eb";
+            ctx.arc(px, py, 17, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#3B82F6"; // Sky blue
             ctx.lineWidth = 3;
             ctx.stroke();
             ctx.font = "bold 10px -apple-system, sans-serif";
             ctx.textAlign = "center";
-            ctx.fillStyle = "#1d4ed8";
-            ctx.fillText("Active #" + actSource.id, px, py - 18);
+            ctx.fillStyle = "#1D4ED8";
+            ctx.fillText("Active #" + act.id, px, py - 20);
             ctx.restore();
           }
         }
+
         if (highlightedBees && highlightedBees.partner) {
-          const partSource = sources.find(s => s.id === highlightedBees.partner);
-          if (partSource) {
-            const px = Math.round(((partSource.x1 - (-bound)) / (2 * bound)) * (w - 1));
-            const py = Math.round(((bound - partSource.x2) / (2 * bound)) * (h - 1));
+          const part = sources.find(s => s.id === highlightedBees.partner);
+          if (part) {
+            const px = Math.round(toPlotX(part.x1, bound, w));
+            const py = Math.round(toPlotY(part.x2, bound, h));
             ctx.save();
             ctx.beginPath();
-            ctx.arc(px, py, 15, 0, 2 * Math.PI);
-            ctx.strokeStyle = "#06b6d4";
+            ctx.arc(px, py, 16, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#06B6D4"; // Cyan
             ctx.lineWidth = 2.5;
             ctx.setLineDash([3, 3]);
             ctx.stroke();
             ctx.font = "bold 10px -apple-system, sans-serif";
             ctx.textAlign = "center";
-            ctx.fillStyle = "#0891b2";
-            ctx.fillText("Partner #" + partSource.id, px, py + 24);
+            ctx.fillStyle = "#0E7490";
+            ctx.fillText("Partner #" + part.id, px, py + 26);
             ctx.restore();
           }
         }
 
-        // Draw star on the best position
+        // Draw golden star on the best solution
         if (globalBest) {
-          const bpx = Math.round(((globalBest.x1 - (-bound)) / (2 * bound)) * (w - 1));
-          const bpy = Math.round(((bound - globalBest.x2) / (2 * bound)) * (h - 1));
-          drawStar(ctx, bpx, bpy - 16, 5, 12, 6);
+          const bpx = Math.round(toPlotX(globalBest.x1, bound, w));
+          const bpy = Math.round(toPlotY(globalBest.x2, bound, h));
+          drawStar(ctx, bpx, bpy - 18, 5, 12, 6);
         }
       }
 
@@ -1994,17 +2325,15 @@
       function redrawLandscape(probKey, bound) {
         drawProblemHeatmap(probKey);
         const ctx = landscapeCanvas.getContext("2d");
-        const w = landscapeCanvas.width;
-        const h = landscapeCanvas.height;
+        const w = 560;
+        const h = 560;
 
         if (lastMoves && lastMoves.length > 0) {
           drawMoveArrows(lastMoves, bound);
         }
-
         if (abandonedPositions && abandonedPositions.length > 0) {
           drawPinkRings(ctx, abandonedPositions, bound, w, h);
         }
-
         drawFoodSources(foodSources, bound);
       }
 
@@ -2013,11 +2342,15 @@
         if (!foodSourcesTableBody) return;
         foodSourcesTableBody.innerHTML = sources.map(s => {
           const isBest = globalBest && (s.id === globalBest.id || Math.abs(s.f - globalBest.f) < 1e-9);
-          const rowStyle = isBest ? "background: #fefce8; font-weight: 600;" : "";
-          const badge = isBest ? ' <span style="color:#b45309;">★</span>' : '';
+          const isActive = highlightedBees && (s.id === highlightedBees.active);
+          let rowClass = "";
+          if (isBest) rowClass = "row-best";
+          else if (isActive) rowClass = "row-active";
+
+          const badge = isBest ? ' <span style="color:#B45309;">★</span>' : '';
           return `
-            <tr style="${rowStyle}">
-              <td style="font-weight: 600;">#${s.id}${badge}</td>
+            <tr class="${rowClass}">
+              <td>#${s.id}${badge}</td>
               <td>${s.x1.toFixed(4)}</td>
               <td>${s.x2.toFixed(4)}</td>
               <td>${s.f.toFixed(4)}</td>
@@ -2037,6 +2370,13 @@
         if (pEmp) pEmp.classList.toggle("active", phaseName === "Employed");
         if (pOnl) pOnl.classList.toggle("active", phaseName === "Onlooker");
         if (pSco) pSco.classList.toggle("active", phaseName === "Scout");
+
+        const expBox = document.getElementById("explanationLiveBox");
+        if (expBox) {
+          if (phaseName === "Employed") expBox.style.borderColor = "var(--phase-employed)";
+          else if (phaseName === "Onlooker") expBox.style.borderColor = "var(--phase-onlooker)";
+          else if (phaseName === "Scout") expBox.style.borderColor = "var(--phase-scout)";
+        }
       }
 
       // 12. Render Hand-Check Card Details
@@ -2056,12 +2396,12 @@
           const dimLabel = move.j === 0 ? "x₁" : "x₂";
           const bound = PROBLEMS[probKey] ? PROBLEMS[probKey].bound : 5;
           const clipText = move.wasClipped
-            ? `<span style="color:#b45309; font-weight:600;">(clipped to bound ±${bound})</span>`
+            ? `<span style="color:#B45309; font-weight:700;">(clipped to bound ±${bound})</span>`
             : `<span>(within bounds [−${bound}, ${bound}])</span>`;
 
           const verdictBadge = move.accepted
-            ? `<span class="verdict-tag accepted">✔ keep new position</span> (f(new) &lt; f(old), trials reset to 0)`
-            : `<span class="verdict-tag rejected">✖ discard, trials + 1</span> (f(new) &ge; f(old), trials incremented)`;
+            ? `<div class="verdict-tag accepted">✔ Keep new position (f(new) &lt; f(old), trials reset to 0)</div>`
+            : `<div class="verdict-tag rejected">✖ Discard, trials + 1 (f(new) ≥ f(old), position retained)</div>`;
 
           let formulaExpansion = "";
           if (probKey === "sphere" || probKey === "textbook") {
@@ -2070,15 +2410,15 @@
             const newPart1 = (move.toX * move.toX).toFixed(4);
             const newPart2 = (move.toY * move.toY).toFixed(4);
             formulaExpansion = `
-              <div style="margin-top:6px; padding:6px 8px; background:#fff; border:1px solid #e2e8f0; border-radius:4px;">
-                <div style="color:#0f172a; font-weight:600; margin-bottom:2px;">Expanded Sphere Function Evaluation: f(x) = x₁² + x₂²</div>
+              <div style="margin-top:8px; padding:10px 12px; background:#FFFFFF; border:1px solid var(--border-color); border-radius:6px;">
+                <div style="font-weight:700; color:var(--deep-brown); margin-bottom:4px;">Expanded Sphere Evaluation: f(x) = x₁² + x₂²</div>
                 <div>f(old) = (${move.fromX.toFixed(4)})² + (${move.fromY.toFixed(4)})² = ${oldPart1} + ${oldPart2} = <strong>${move.oldF.toFixed(4)}</strong></div>
                 <div>f(new) = (${move.toX.toFixed(4)})² + (${move.toY.toFixed(4)})² = ${newPart1} + ${newPart2} = <strong>${move.newF.toFixed(4)}</strong></div>
               </div>
             `;
           } else {
             formulaExpansion = `
-              <div style="margin-top:6px; padding:6px 8px; background:#fff; border:1px solid #e2e8f0; border-radius:4px;">
+              <div style="margin-top:8px; padding:10px 12px; background:#FFFFFF; border:1px solid var(--border-color); border-radius:6px;">
                 <div>f(old) = <strong>${move.oldF.toFixed(4)}</strong></div>
                 <div>f(new) = <strong>${move.newF.toFixed(4)}</strong></div>
               </div>
@@ -2086,23 +2426,22 @@
           }
 
           handCalc.innerHTML = `
-            <div style="margin-bottom: 4px;">
-              <strong>Bee #${move.i}</strong> (${move.phaseName || "Search"}) &rarr; Partner <strong>#${move.k}</strong>, Dimension <strong>${dimLabel}</strong> (j = ${move.j}):
+            <div style="font-weight:700; color:var(--deep-brown); margin-bottom:6px;">
+              Bee #${move.i} (${move.phaseName || "Search"}) &rarr; Partner #${move.k}, Dimension ${dimLabel} (j = ${move.j}):
             </div>
-            <div style="background:#f1f5f9; padding:6px 8px; border-radius:4px; margin:4px 0;">
-              v_{${move.i},${move.j + 1}} = x_{${move.i},${move.j + 1}} + &phi; &times; (x_{${move.i},${move.j + 1}} - x_{${move.k},${move.j + 1}})<br>
-              = ${move.curVal.toFixed(4)} + (${move.phi.toFixed(4)}) &times; (${move.curVal.toFixed(4)} - (${move.partVal.toFixed(4)}))<br>
+            <div style="background:#FFFFFF; border:1px solid var(--border-color); padding:10px 12px; border-radius:6px; margin:6px 0;">
+              v<sub>${move.i},${move.j + 1}</sub> = x<sub>${move.i},${move.j + 1}</sub> + φ × (x<sub>${move.i},${move.j + 1}</sub> − x<sub>${move.k},${move.j + 1}</sub>)<br>
+              = ${move.curVal.toFixed(4)} + (${move.phi.toFixed(4)}) × (${move.curVal.toFixed(4)} − (${move.partVal.toFixed(4)}))<br>
               = ${move.curVal.toFixed(4)} + (${(move.phi * (move.curVal - move.partVal)).toFixed(4)})<br>
               = <strong>${move.unclippedVal.toFixed(4)}</strong> &rarr; ${clipText} &rarr; <strong>${move.toVal.toFixed(4)}</strong>
             </div>
-            <div style="margin:4px 0;">
+            <div style="margin:6px 0;">
               New candidate position: <strong>v = (${move.toX.toFixed(4)}, ${move.toY.toFixed(4)})</strong>
             </div>
             ${formulaExpansion}
-            <div style="margin-top: 6px;">
-              ${verdictBadge}
-            </div>
+            ${verdictBadge}
           `;
+          renderMath(handCalc);
         }
       }
 
@@ -2123,7 +2462,7 @@
         }
       }
 
-      // 13. Evaluate Random Search Step (Fair baseline with identical function evaluations)
+      // 13. Evaluate Random Search Step
       function evaluateRandomSearchEvals(count, prob, bound) {
         if (!compareRandomSearch) return;
         for (let e = 0; e < count; e++) {
@@ -2157,13 +2496,12 @@
         const prob = PROBLEMS[selectedKey] || PROBLEMS.sphere;
         const bound = prob.bound;
 
-        // Check if Textbook preset is active
         const isTextbook = (selectedKey === "textbook");
         if (isTextbook) {
           if (snInput) { snInput.value = "4"; snInput.disabled = true; }
           if (limitInput) { limitInput.value = "3"; limitInput.disabled = true; }
-          if (snLockHint) snLockHint.style.display = "block";
-          if (limitLockHint) limitLockHint.style.display = "block";
+          if (snLockHint) snLockHint.style.display = "inline";
+          if (limitLockHint) limitLockHint.style.display = "inline";
         } else {
           if (snInput) snInput.disabled = false;
           if (limitInput) limitInput.disabled = false;
@@ -2181,7 +2519,7 @@
         lastMoves = [];
         abandonedPositions = [];
         currentCycle = 1;
-        currentPhaseIndex = 0; // Next is Employed
+        currentPhaseIndex = 0;
         singleBeePhase = 0;
         singleBeeIndex = 0;
         highlightedBees = { active: null, partner: null };
@@ -2227,7 +2565,6 @@
         globalBest = bestSource ? { ...bestSource } : null;
         convergenceHistory = globalBest ? [globalBest.f] : [];
 
-        // Initialize pure random search baseline with identical initial evaluations (SN points)
         if (compareRandomSearch) {
           randomBestF = Infinity;
           for (let r = 0; r < sn; r++) {
@@ -2242,32 +2579,32 @@
           randomBestF = Infinity;
         }
 
-        // Redraw landscape & chart
         redrawLandscape(selectedKey, bound);
         fillFoodSourcesTable(foodSources);
         drawConvergenceChart();
 
-        // Update indicators
         if (cycleBadge) cycleBadge.textContent = `0 / ${maxCycles}`;
         if (bestValBadge && globalBest) bestValBadge.textContent = formatBestF(globalBest.f);
-        if (statusLabel) statusLabel.textContent = "Ready (Reset)";
+        if (statusLabel) statusLabel.textContent = "Ready";
         if (tableCountBadge) tableCountBadge.textContent = `${sn} food sources`;
         updateStatusLine(0, maxCycles, globalBest ? globalBest.f : "—");
         updatePhaseTracker("Employed");
 
-        // Explanation card
         const expBadge = document.getElementById("explanationBadge");
         const expTitle = document.getElementById("explanationLiveTitle");
         const expText = document.getElementById("explanationLiveText");
+        const nextInd = document.getElementById("nextPhaseIndicator");
         if (expBadge) expBadge.textContent = "Ready";
         if (expTitle) expTitle.textContent = "Colony Initialized — Ready for Cycle 1";
         if (expText) {
-          expText.innerHTML = `Colony initialized with <strong>${sn} food sources</strong> (Seed: ${seed}, Limit: ${limit}, Max Cycles: ${maxCycles}). Press <strong>Play</strong> to run automatically or <strong>Step</strong> to run the next phase: <strong>Employed Bees</strong>.`;
+          expText.innerHTML = `Colony initialized with <strong>${sn} food sources</strong> (Seed: ${seed}, Limit: ${limit}, Max Cycles: ${maxCycles}). Press <strong>Step</strong> or <strong>Play</strong> to run the next phase: <strong>Employed Bees</strong>.`;
+        }
+        if (nextInd) {
+          nextInd.innerHTML = `<strong>Next:</strong> Employed Bees explore local neighborhoods around assigned sources.`;
         }
 
         renderHandCheckInitial();
-
-        appendLog("RESET", `Colony initialized with ${sn} food sources (Seed: ${seed}, Limit: ${limit}, Max cycles: ${maxCycles}). Best f(x) = ${globalBest ? formatBestF(globalBest.f) : "—"}`, "init");
+        appendLog("RESET", `Colony initialized with SN=${sn}, Limit=${limit}, Max cycles=${maxCycles}, Seed=${seed}.`, "init");
       }
 
       // 15. Phase 1: Employed Bees (Full Phase)
@@ -2278,7 +2615,7 @@
         const sn = foodSources.length;
         const maxCycles = Math.max(1, parseInt(maxCyclesInput && maxCyclesInput.value !== "" ? maxCyclesInput.value : 30, 10) || 30);
 
-        abandonedPositions = []; // Clear previous scout rings
+        abandonedPositions = [];
         lastMoves = [];
         highlightedBees = { active: null, partner: null };
         let acceptedCount = 0;
@@ -2344,10 +2681,8 @@
           if (i === 0) sampleMove = move;
         }
 
-        // Random search baseline performs SN function evaluations for fair comparison
         evaluateRandomSearchEvals(sn, prob, bound);
 
-        // Recompute selection probabilities
         let sumFitness = 0;
         let bestSource = foodSources[0];
         foodSources.forEach(s => {
@@ -2372,17 +2707,19 @@
         if (statusLabel) statusLabel.textContent = phaseTitle;
         updateStatusLine(currentCycle, maxCycles, globalBest ? globalBest.f : "—");
 
-        // Explanation Card Title & Plain-language Text
         const expBadge = document.getElementById("explanationBadge");
         const expTitle = document.getElementById("explanationLiveTitle");
         const expText = document.getElementById("explanationLiveText");
+        const nextInd = document.getElementById("nextPhaseIndicator");
         if (expBadge) expBadge.textContent = phaseTitle;
         if (expTitle) expTitle.textContent = `${phaseTitle} Bees`;
         if (expText) {
-          expText.innerHTML = `In the <strong>Employed Bees</strong> phase of <strong>Cycle ${currentCycle}</strong>, each bee explored near its assigned food source. <strong>${acceptedCount} of ${sn} candidate moves were accepted</strong> (lower objective value f(v) &lt; f(x)), updating their positions with trials reset to 0. The remaining <strong>${sn - acceptedCount} move${sn - acceptedCount === 1 ? '' : 's'} were rejected</strong> and had their trial counters incremented. Solid green arrows show accepted moves; dashed red arrows show rejected exploratory attempts.`;
+          expText.innerHTML = `In the <strong>Employed Bees</strong> phase of <strong>Cycle ${currentCycle}</strong>, each bee searched near its assigned food source. <strong>${acceptedCount} of ${sn} candidate moves were accepted</strong> (lower objective value f(v) &lt; f(x)), updating positions with trials reset to 0. <strong>${sn - acceptedCount} move${sn - acceptedCount === 1 ? '' : 's'} were rejected</strong> (trials incremented). Solid green arrows show accepted moves; dashed red arrows show rejected attempts.`;
+        }
+        if (nextInd) {
+          nextInd.innerHTML = `<strong>Next:</strong> Onlooker Bees select food sources via roulette wheel selection proportional to fitness.`;
         }
 
-        // Hand-check update
         if (sampleMove) {
           renderHandCheck(sampleMove, selectedKey);
         }
@@ -2398,13 +2735,12 @@
         const sn = foodSources.length;
         const maxCycles = Math.max(1, parseInt(maxCyclesInput && maxCyclesInput.value !== "" ? maxCyclesInput.value : 30, 10) || 30);
 
-        abandonedPositions = []; // Clear previous scout rings
+        abandonedPositions = [];
         lastMoves = [];
         highlightedBees = { active: null, partner: null };
         let acceptedCount = 0;
         let sampleMove = null;
 
-        // Build cumulative probabilities for roulette wheel selection
         const cumProb = [];
         let cumSum = 0;
         foodSources.forEach(s => {
@@ -2481,10 +2817,8 @@
           if (m === 0) sampleMove = move;
         }
 
-        // Random search baseline performs SN function evaluations
         evaluateRandomSearchEvals(sn, prob, bound);
 
-        // Recompute selection probabilities
         let sumFitness = 0;
         let bestSource = foodSources[0];
         foodSources.forEach(s => {
@@ -2509,17 +2843,19 @@
         if (statusLabel) statusLabel.textContent = phaseTitle;
         updateStatusLine(currentCycle, maxCycles, globalBest ? globalBest.f : "—");
 
-        // Explanation Card Title & Plain-language Text
         const expBadge = document.getElementById("explanationBadge");
         const expTitle = document.getElementById("explanationLiveTitle");
         const expText = document.getElementById("explanationLiveText");
+        const nextInd = document.getElementById("nextPhaseIndicator");
         if (expBadge) expBadge.textContent = phaseTitle;
         if (expTitle) expTitle.textContent = `${phaseTitle} Bees`;
         if (expText) {
-          expText.innerHTML = `In the <strong>Onlooker Bees</strong> phase of <strong>Cycle ${currentCycle}</strong>, ${sn} onlookers chose food sources via <strong>roulette wheel selection</strong> proportional to nectar fitness (p_i = fit_i / &sum;fit). They explored neighboring solutions using the candidate formula. <strong>${acceptedCount} of ${sn} moves were accepted</strong> and updated, while <strong>${sn - acceptedCount} move${sn - acceptedCount === 1 ? '' : 's'} were rejected</strong> (trials incremented). Fitter food sources were selected more often, focusing search on the most promising areas.`;
+          expText.innerHTML = `In the <strong>Onlooker Bees</strong> phase of <strong>Cycle ${currentCycle}</strong>, ${sn} onlookers chose food sources via <strong>roulette wheel selection</strong> proportional to nectar fitness. <strong>${acceptedCount} of ${sn} moves were accepted</strong> and updated, while <strong>${sn - acceptedCount} move${sn - acceptedCount === 1 ? '' : 's'} were rejected</strong> (trials incremented). Fitter sources were selected more often.`;
+        }
+        if (nextInd) {
+          nextInd.innerHTML = `<strong>Next:</strong> Scout Bees inspect trial counters; any source exceeding limit (${limitInput.value}) will be abandoned.`;
         }
 
-        // Hand-check update
         if (sampleMove) {
           renderHandCheck(sampleMove, selectedKey);
         }
@@ -2536,18 +2872,16 @@
         const limit = Math.max(1, parseInt(limitInput && limitInput.value !== "" ? limitInput.value : 5, 10) || 5);
         const maxCycles = Math.max(1, parseInt(maxCyclesInput && maxCyclesInput.value !== "" ? maxCyclesInput.value : 30, 10) || 30);
 
-        lastMoves = []; // Clear arrows for scout phase
+        lastMoves = [];
         abandonedPositions = [];
         highlightedBees = { active: null, partner: null };
         let scoutedCount = 0;
 
-        // Any source with trials > limit is replaced by a random new position
         foodSources.forEach(s => {
           if (s.trials > limit) {
             scoutedCount++;
             abandonedPositions.push({ x1: s.x1, x2: s.x2, id: s.id });
 
-            // Random new position inside bounds
             s.x1 = -bound + activeRng() * (2 * bound);
             s.x2 = -bound + activeRng() * (2 * bound);
             s.f = prob.fn(s.x1, s.x2);
@@ -2556,10 +2890,8 @@
           }
         });
 
-        // Random search baseline performs scoutedCount evaluations
         evaluateRandomSearchEvals(scoutedCount, prob, bound);
 
-        // Recalculate selection probabilities
         let sumFitness = 0;
         let cycleBest = foodSources[0];
         foodSources.forEach(s => {
@@ -2570,17 +2902,14 @@
           s.probability = sumFitness > 0 ? (s.fitness / sumFitness) : (1 / sn);
         });
 
-        // Memorize the best solution
         if (!globalBest || cycleBest.f < globalBest.f) {
           globalBest = { ...cycleBest };
         }
 
-        // Draw star on best position and pink rings at abandoned positions
         redrawLandscape(selectedKey, bound);
         fillFoodSourcesTable(foodSources);
         updatePhaseTracker("Scout");
 
-        // Record convergence history and redraw convergence chart
         convergenceHistory.push(globalBest.f);
         if (compareRandomSearch) {
           randomSearchHistory.push(randomBestF);
@@ -2603,40 +2932,45 @@
         if (statusLabel) statusLabel.textContent = isMaxReached ? "Finished" : phaseTitle;
         updateStatusLine(completedCycle, maxCycles, globalBest ? globalBest.f : "—");
 
-        // Explanation Card Title & Plain-language Text
         const expBadge = document.getElementById("explanationBadge");
         const expTitle = document.getElementById("explanationLiveTitle");
         const expText = document.getElementById("explanationLiveText");
+        const nextInd = document.getElementById("nextPhaseIndicator");
 
         if (isMaxReached) {
           if (expBadge) expBadge.textContent = "Finished";
           if (expTitle) expTitle.textContent = `Finished — Maximum Cycles Reached (${maxCycles}/${maxCycles})`;
           if (expText) {
             const abandonmentNote = scoutedCount > 0
-              ? ` In this final Scout phase, ${scoutedCount} food source${scoutedCount === 1 ? '' : 's'} exceeded the abandonment limit (trials &gt; ${limit}) and were replaced with random search (pink rings).`
-              : ` No food sources exceeded the abandonment limit of ${limit} trials (all trials &le; ${limit}).`;
+              ? ` In this final Scout phase, ${scoutedCount} food source${scoutedCount === 1 ? '' : 's'} exceeded the abandonment limit (trials > ${limit}) and were replaced with random search (pink rings).`
+              : ` No food sources exceeded the abandonment limit of ${limit} trials (all trials ≤ ${limit}).`;
             expText.innerHTML = `<strong>Finished:</strong> ABC optimization reached the stopping criterion of <strong>${maxCycles} cycles</strong>.${abandonmentNote} The optimal solution discovered across the run has objective value <strong>f = ${formatBestF(globalBest.f)}</strong> at position (${globalBest.x1.toFixed(4)}, ${globalBest.x2.toFixed(4)}) (Source #${globalBest.id}), crowned with a <strong>golden star</strong>. Modify any parameter or click <strong>Reset</strong> to run again.`;
+          }
+          if (nextInd) {
+            nextInd.innerHTML = `<strong>Status:</strong> Run complete. Click <strong>Reset</strong> to restart or change parameters.`;
           }
         } else {
           if (expBadge) expBadge.textContent = phaseTitle;
           if (expTitle) expTitle.textContent = `${phaseTitle} Bees`;
           if (expText) {
             if (scoutedCount > 0) {
-              expText.innerHTML = `In the <strong>Scout Bees</strong> phase of <strong>Cycle ${completedCycle}</strong>, <strong>${scoutedCount} food source${scoutedCount === 1 ? '' : 's'} (#${abandonedPositions.map(p => p.id).join(', #')})</strong> exceeded the abandonment threshold (trials &gt; ${limit}) and were abandoned. Scout bees discovered fresh random positions inside the bounds, marked by <strong>pink rings</strong> at the old locations. The global best solution (f = ${formatBestF(globalBest.f)}) was memorized and crowned with a <strong>golden star</strong>. Cycle counter advanced to <strong>${currentCycle}</strong>.`;
+              expText.innerHTML = `In the <strong>Scout Bees</strong> phase of <strong>Cycle ${completedCycle}</strong>, <strong>${scoutedCount} food source${scoutedCount === 1 ? '' : 's'} (#${abandonedPositions.map(p => p.id).join(', #')})</strong> exceeded the abandonment threshold (trials > ${limit}) and were abandoned. Scout bees discovered fresh random positions, marked by <strong>pink rings</strong>. Global best memorized: <strong>f = ${formatBestF(globalBest.f)}</strong> (Source #${globalBest.id}). Cycle advanced to <strong>${currentCycle}</strong>.`;
             } else {
-              expText.innerHTML = `In the <strong>Scout Bees</strong> phase of <strong>Cycle ${completedCycle}</strong>, no food sources exceeded the abandonment limit of ${limit} trials (all trials &le; ${limit}). No scout replacements were needed. The global best solution so far (f = ${formatBestF(globalBest.f)}) was memorized and crowned with a <strong>golden star</strong>. Cycle counter advanced to <strong>${currentCycle}</strong>.`;
+              expText.innerHTML = `In the <strong>Scout Bees</strong> phase of <strong>Cycle ${completedCycle}</strong>, no food sources exceeded the abandonment limit of ${limit} trials (all trials ≤ ${limit}). All sources remain active. Global best memorized: <strong>f = ${formatBestF(globalBest.f)}</strong>. Cycle advanced to <strong>${currentCycle}</strong>.`;
             }
+          }
+          if (nextInd) {
+            nextInd.innerHTML = `<strong>Next:</strong> Cycle ${currentCycle} Employed Bees phase.`;
           }
         }
 
-        // Hand-check update
         const handCalc = document.getElementById("handCheckCalcDetails");
         if (handCalc) {
           const maxTrialsSource = foodSources.reduce((m, s) => s.trials > m.trials ? s : m, foodSources[0]);
           handCalc.innerHTML = `
             <strong>Scout Phase Inspection:</strong> Abandonment Limit = <strong>${limit}</strong><br>
             Max trials in colony = <strong>${maxTrialsSource.trials}</strong> (Source #${maxTrialsSource.id})<br>
-            Sources abandoned (trials &gt; ${limit}): <strong>${scoutedCount}</strong>${scoutedCount > 0 ? ' &rarr; replaced with new random coordinates and trials reset to 0' : ' &rarr; all sources remain active'}<br>
+            Sources abandoned (trials > ${limit}): <strong>${scoutedCount}</strong>${scoutedCount > 0 ? ' &rarr; replaced with new random coordinates and trials reset to 0' : ' &rarr; all sources remain active'}<br>
             Global Best Memorized: <strong>f = ${formatBestF(globalBest.f)}</strong> at Source #${globalBest.id}
           `;
         }
@@ -2654,7 +2988,6 @@
         const maxCycles = Math.max(1, parseInt(maxCyclesInput && maxCyclesInput.value !== "" ? maxCyclesInput.value : 30, 10) || 30);
 
         if (singleBeePhase === 0) {
-          // Employed bee i
           updatePhaseTracker("Employed");
           const i = singleBeeIndex;
           const cur = foodSources[i];
@@ -2717,10 +3050,8 @@
           lastMoves = [move];
           highlightedBees = { active: cur.id, partner: partner.id };
 
-          // Update Hand-check
           renderHandCheck(move, selectedKey);
 
-          // Update Explanation in plain language
           const expBadge = document.getElementById("explanationBadge");
           const expTitle = document.getElementById("explanationLiveTitle");
           const expText = document.getElementById("explanationLiveText");
@@ -2731,16 +3062,15 @@
             if (isAccepted) {
               expText.innerHTML = `<strong>Employed Bee #${cur.id}</strong> modified dimension <strong>${dimName}</strong> using neighbor <strong>#${partner.id}</strong>. Candidate fitness is better (f(v) = <strong>${candF.toFixed(4)}</strong> &lt; old f = <strong>${oldF.toFixed(4)}</strong>). <span style="color:#166534; font-weight:700;">Accepted:</span> position updated and trial counter reset to 0.`;
             } else {
-              expText.innerHTML = `<strong>Employed Bee #${cur.id}</strong> modified dimension <strong>${dimName}</strong> using neighbor <strong>#${partner.id}</strong>. Candidate fitness is worse or equal (f(v) = <strong>${candF.toFixed(4)}</strong> &ge; old f = <strong>${oldF.toFixed(4)}</strong>). <span style="color:#991b1b; font-weight:700;">Rejected:</span> position kept unchanged, trial counter incremented to <strong>${cur.trials}</strong>.`;
+              expText.innerHTML = `<strong>Employed Bee #${cur.id}</strong> modified dimension <strong>${dimName}</strong> using neighbor <strong>#${partner.id}</strong>. Candidate fitness is worse or equal (f(v) = <strong>${candF.toFixed(4)}</strong> ≥ old f = <strong>${oldF.toFixed(4)}</strong>). <span style="color:#991B1B; font-weight:700;">Rejected:</span> position kept unchanged, trial counter incremented to <strong>${cur.trials}</strong>.`;
             }
           }
 
           singleBeeIndex++;
           if (singleBeeIndex >= sn) {
             singleBeeIndex = 0;
-            singleBeePhase = 1; // Transition to Onlooker
+            singleBeePhase = 1;
 
-            // Recompute probabilities
             let sumFitness = 0;
             let bestSource = foodSources[0];
             foodSources.forEach(s => {
@@ -2757,10 +3087,8 @@
           }
 
         } else if (singleBeePhase === 1) {
-          // Onlooker bee
           updatePhaseTracker("Onlooker");
 
-          // Build cumulative probabilities
           const cumProb = [];
           let cumSum = 0;
           foodSources.forEach(s => {
@@ -2847,18 +3175,17 @@
           if (expTitle) expTitle.textContent = `Onlooker Bee #${singleBeeIndex + 1} Selected Source #${cur.id}`;
           if (expText) {
             if (isAccepted) {
-              expText.innerHTML = `<strong>Onlooker Bee #${singleBeeIndex + 1}</strong> selected Source <strong>#${cur.id}</strong> (prob = ${(cur.probability * 100).toFixed(1)}%) via roulette wheel and modified dim <strong>${dimName}</strong> with neighbor <strong>#${partner.id}</strong>. Candidate fitness is improved (f(v) = <strong>${candF.toFixed(4)}</strong> &lt; <strong>${oldF.toFixed(4)}</strong>). <span style="color:#166534; font-weight:700;">Accepted:</span> source updated, trials reset.`;
+              expText.innerHTML = `<strong>Onlooker Bee #${singleBeeIndex + 1}</strong> selected Source <strong>#${cur.id}</strong> (prob = ${(cur.probability * 100).toFixed(1)}%) via roulette wheel and modified dim <strong>${dimName}</strong> with neighbor <strong>#${partner.id}</strong>. Candidate fitness improved (f(v) = <strong>${candF.toFixed(4)}</strong> &lt; <strong>${oldF.toFixed(4)}</strong>). <span style="color:#166534; font-weight:700;">Accepted:</span> source updated, trials reset.`;
             } else {
-              expText.innerHTML = `<strong>Onlooker Bee #${singleBeeIndex + 1}</strong> selected Source <strong>#${cur.id}</strong> via roulette wheel and modified dim <strong>${dimName}</strong> with neighbor <strong>#${partner.id}</strong>. Candidate fitness is worse or equal (f(v) = <strong>${candF.toFixed(4)}</strong> &ge; <strong>${oldF.toFixed(4)}</strong>). <span style="color:#991b1b; font-weight:700;">Rejected:</span> trials incremented to <strong>${cur.trials}</strong>.`;
+              expText.innerHTML = `<strong>Onlooker Bee #${singleBeeIndex + 1}</strong> selected Source <strong>#${cur.id}</strong> via roulette wheel and modified dim <strong>${dimName}</strong> with neighbor <strong>#${partner.id}</strong>. Candidate fitness is worse or equal (f(v) = <strong>${candF.toFixed(4)}</strong> ≥ <strong>${oldF.toFixed(4)}</strong>). <span style="color:#991B1B; font-weight:700;">Rejected:</span> trials incremented to <strong>${cur.trials}</strong>.`;
             }
           }
 
           singleBeeIndex++;
           if (singleBeeIndex >= sn) {
             singleBeeIndex = 0;
-            singleBeePhase = 2; // Transition to Scout
+            singleBeePhase = 2;
 
-            // Recompute probabilities
             let sumFitness = 0;
             let bestSource = foodSources[0];
             foodSources.forEach(s => {
@@ -2875,7 +3202,6 @@
           }
 
         } else {
-          // Scout phase for single bee mode runs full scout check
           runScoutPhase();
           singleBeePhase = 0;
           singleBeeIndex = 0;
@@ -2920,10 +3246,9 @@
         const testContainer = document.getElementById("selfTestResults");
         if (testContainer) {
           testContainer.style.display = "block";
-          testContainer.innerHTML = "<div style='color:#64748b;'>Running ABC algorithm invariants self-test...</div>";
+          testContainer.innerHTML = "<div style='color:var(--text-muted);'>Running ABC algorithm invariants self-test...</div>";
         }
 
-        // 1. Force textbook preset with seed 1
         if (problemSelect) problemSelect.value = "textbook";
         if (seedInput) seedInput.value = "1";
         if (granularitySelect) granularitySelect.value = "phase";
@@ -2932,72 +3257,50 @@
         resetColony();
 
         const initialBestF = globalBest ? globalBest.f : Infinity;
-        let test1Pass = true; // All accepted moves have f(new) < f(old)
-        let test2Pass = true; // Probabilities sum to 1
-        let test3Pass = true; // Best value never increases between cycles
+        let test1Pass = true;
+        let test2Pass = true;
+        let test3Pass = true;
 
-        // Track moves during the full cycle
-        const origRng = activeRng;
-        const recordedMoves = [];
-
-        // Check probabilities at initial state
         const initialProbSum = foodSources.reduce((sum, s) => sum + s.probability, 0);
-        if (Math.abs(initialProbSum - 1.0) > 1e-4) {
-          test2Pass = false;
-        }
+        if (Math.abs(initialProbSum - 1.0) > 1e-4) test2Pass = false;
 
-        // Run Employed Phase
         runEmployedPhase();
         lastMoves.forEach(m => {
-          recordedMoves.push(m);
-          if (m.accepted && !(m.newF < m.oldF)) {
-            test1Pass = false;
-          }
+          if (m.accepted && !(m.newF < m.oldF)) test1Pass = false;
         });
         const empProbSum = foodSources.reduce((sum, s) => sum + s.probability, 0);
-        if (Math.abs(empProbSum - 1.0) > 1e-4) {
-          test2Pass = false;
-        }
+        if (Math.abs(empProbSum - 1.0) > 1e-4) test2Pass = false;
 
-        // Run Onlooker Phase
         runOnlookerPhase();
         lastMoves.forEach(m => {
-          recordedMoves.push(m);
-          if (m.accepted && !(m.newF < m.oldF)) {
-            test1Pass = false;
-          }
+          if (m.accepted && !(m.newF < m.oldF)) test1Pass = false;
         });
         const onlProbSum = foodSources.reduce((sum, s) => sum + s.probability, 0);
-        if (Math.abs(onlProbSum - 1.0) > 1e-4) {
-          test2Pass = false;
-        }
+        if (Math.abs(onlProbSum - 1.0) > 1e-4) test2Pass = false;
 
-        // Run Scout Phase
         runScoutPhase();
         const cycle1BestF = globalBest ? globalBest.f : Infinity;
-        if (cycle1BestF > initialBestF + 1e-9) {
-          test3Pass = false;
-        }
+        if (cycle1BestF > initialBestF + 1e-9) test3Pass = false;
 
         if (testContainer) {
           testContainer.innerHTML = `
-            <div style="font-weight:700; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-weight:800; color:var(--deep-brown); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
               <span>ABC Self-Test Report (Textbook Preset, Seed 1)</span>
-              <button id="btnCloseSelfTest" style="background:none; border:none; font-size:16px; cursor:pointer; color:#64748b;">✕</button>
+              <button id="btnCloseSelfTest" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);" title="Close report">✕</button>
             </div>
             <div class="self-test-item">
-              <span class="self-test-name">1. Greedy Selection: Every accepted move has f(new) &lt; f(old)</span>
+              <span>1. Greedy Selection: Every accepted move has f(new) &lt; f(old)</span>
               <span class="self-test-badge ${test1Pass ? 'badge-pass' : 'badge-fail'}">${test1Pass ? 'PASS' : 'FAIL'}</span>
             </div>
             <div class="self-test-item">
-              <span class="self-test-name">2. Probability Distribution: Selection probabilities sum to 1.0 (&plusmn;10⁻⁴)</span>
+              <span>2. Probability Distribution: Selection probabilities sum to 1.0 (±10⁻⁴)</span>
               <span class="self-test-badge ${test2Pass ? 'badge-pass' : 'badge-fail'}">${test2Pass ? 'PASS' : 'FAIL'}</span>
             </div>
             <div class="self-test-item">
-              <span class="self-test-name">3. Monotonic Convergence: Best value never increases between cycles</span>
+              <span>3. Monotonic Convergence: Best value never increases between cycles</span>
               <span class="self-test-badge ${test3Pass ? 'badge-pass' : 'badge-fail'}">${test3Pass ? 'PASS' : 'FAIL'}</span>
             </div>
-            <div style="margin-top:8px; font-size:0.75rem; color:#475569;">
+            <div style="margin-top:10px; font-size:0.85rem; color:var(--text-muted);">
               Evaluated 1 complete cycle (4 employed moves, 4 onlooker moves, scout evaluation). Cycle Best f = <strong>${formatBestF(cycle1BestF)}</strong> (vs Initial <strong>${formatBestF(initialBestF)}</strong>).
             </div>
           `;
@@ -3013,33 +3316,63 @@
         appendLog("TEST", `Self-test completed: Invariant 1: ${test1Pass ? 'PASS' : 'FAIL'}, Invariant 2: ${test2Pass ? 'PASS' : 'FAIL'}, Invariant 3: ${test3Pass ? 'PASS' : 'FAIL'}.`, test1Pass && test2Pass && test3Pass ? "init" : "param");
       }
 
-      // 21. Render Dynamic Convergence Chart (Log10 scale with axis labels & dual curves)
+      // Helper to format power of 10 with Unicode superscripts
+      function formatPowerOf10(exp) {
+        const superscripts = {
+          '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³',
+          '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
+        };
+        const expStr = exp.toString().split('').map(c => superscripts[c] || c).join('');
+        return `10${expStr}`;
+      }
+
+      // 21. Render Dynamic Convergence Chart (High-DPI, log10 scale, real superscripts, legend OUTSIDE plot)
       function drawConvergenceChart() {
         if (!chartCanvas) return;
         const ctx = chartCanvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
         const rect = chartCanvas.getBoundingClientRect();
 
-        chartCanvas.width = rect.width || 600;
-        chartCanvas.height = rect.height || 180;
-        const w = chartCanvas.width;
-        const h = chartCanvas.height;
+        const w = rect.width || 600;
+        const h = rect.height || 200;
+
+        chartCanvas.width = Math.round(w * dpr);
+        chartCanvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         const padLeft = 68;
         const padRight = 24;
-        const padTop = 22;
-        const padBottom = 32;
+        const padTop = 18;
+        const padBottom = 34;
 
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, w, h);
 
         const chartW = w - padLeft - padRight;
         const chartH = h - padTop - padBottom;
         const maxCycles = Math.max(1, parseInt(maxCyclesInput ? maxCyclesInput.value : 30, 10) || 30);
 
+        // Update Legend outside chart
+        const legendRandom = document.getElementById("legendRandomSearch");
+        if (legendRandom) {
+          legendRandom.style.display = compareRandomSearch ? "inline-flex" : "none";
+        }
+
+        // Empty state before cycle 1 starts
+        if (convergenceHistory.length <= 1) {
+          ctx.strokeStyle = "#E2E8F0";
+          ctx.strokeRect(padLeft, padTop, chartW, chartH);
+          ctx.fillStyle = "#8C7A6B";
+          ctx.font = "600 14px -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("Press Step or Play to start the chart", padLeft + chartW / 2, padTop + chartH / 2);
+          return;
+        }
+
         const dataABC = convergenceHistory.length > 0 ? convergenceHistory : [0];
         const dataRandom = (compareRandomSearch && randomSearchHistory.length > 0) ? randomSearchHistory : [];
 
-        // Compute log10 values for scaling
         const allValues = [...dataABC, ...dataRandom];
         const logVals = allValues.map(v => Math.log10(Math.max(v, 1e-6)));
 
@@ -3051,28 +3384,28 @@
         }
         const logRange = maxLog - minLog;
 
-        // Draw horizontal grid lines & Y-axis log10 labels
+        // Horizontal Grid lines & Y-axis labels with REAL superscripts
         ctx.lineWidth = 1;
-        ctx.font = "9px ui-monospace, monospace";
+        ctx.font = "600 11px ui-monospace, monospace";
         for (let l = minLog; l <= maxLog; l++) {
           const normY = (l - minLog) / logRange;
           const y = padTop + chartH - (normY * chartH);
 
-          ctx.strokeStyle = "#f1f5f9";
+          ctx.strokeStyle = "#F1F5F9";
           ctx.beginPath();
           ctx.moveTo(padLeft, y);
           ctx.lineTo(padLeft + chartW, y);
           ctx.stroke();
 
-          // Y-axis label in powers of 10
-          ctx.fillStyle = "#64748b";
+          ctx.fillStyle = "#64748B";
           ctx.textAlign = "right";
-          ctx.fillText(`10^${l}`, padLeft - 8, y + 3);
+          ctx.textBaseline = "middle";
+          ctx.fillText(formatPowerOf10(l), padLeft - 8, y);
         }
 
-        // Main Axes
-        ctx.strokeStyle = "#cbd5e1";
-        ctx.lineWidth = 1;
+        // Axes borders
+        ctx.strokeStyle = "#CBD5E1";
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(padLeft, padTop);
         ctx.lineTo(padLeft, padTop + chartH);
@@ -3080,18 +3413,19 @@
         ctx.stroke();
 
         // X-axis cycle labels
-        ctx.fillStyle = "#64748b";
+        ctx.fillStyle = "#64748B";
         ctx.textAlign = "center";
+        ctx.textBaseline = "top";
         const xTicks = [0, 0.25, 0.5, 0.75, 1];
         xTicks.forEach(pct => {
           const x = padLeft + chartW * pct;
           const cycleNum = Math.round(maxCycles * pct);
-          ctx.fillText(cycleNum.toString(), x, padTop + chartH + 16);
+          ctx.fillText(cycleNum.toString(), x, padTop + chartH + 8);
         });
 
         // Axis Titles
-        ctx.font = "10px -apple-system, sans-serif";
-        ctx.fillText("Cycle", padLeft + chartW / 2, h - 4);
+        ctx.font = "bold 11px -apple-system, sans-serif";
+        ctx.fillText("Cycle", padLeft + chartW / 2, h - 14);
 
         ctx.save();
         ctx.translate(14, padTop + chartH / 2);
@@ -3100,7 +3434,6 @@
         ctx.fillText("Best f(x) (log₁₀)", 0, 0);
         ctx.restore();
 
-        // Helper to plot a series
         function plotSeries(series, strokeColor, fillColor) {
           if (series.length === 0) return;
           const stepX = chartW / Math.max(maxCycles, series.length - 1);
@@ -3114,7 +3447,7 @@
             else ctx.lineTo(x, y);
           });
           ctx.strokeStyle = strokeColor;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 2.5;
           ctx.stroke();
 
           if (fillColor && series.length > 1) {
@@ -3126,43 +3459,16 @@
           }
         }
 
-        // Draw Random Search Curve (Blue)
+        // Plot Pure Random Search curve (Sky blue)
         if (compareRandomSearch && dataRandom.length > 0) {
-          plotSeries(dataRandom, "#2563eb", "rgba(37, 99, 235, 0.05)");
+          plotSeries(dataRandom, "#3B82F6", "rgba(59, 130, 246, 0.05)");
         }
 
-        // Draw ABC Curve (Amber)
-        plotSeries(dataABC, "#d97706", "rgba(217, 119, 6, 0.08)");
-
-        // Draw Chart Legend
-        const legX = w - padRight - 150;
-        const legY = padTop + 8;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 1;
-        ctx.fillRect(legX, legY - 6, 140, compareRandomSearch ? 34 : 20);
-        ctx.strokeRect(legX, legY - 6, 140, compareRandomSearch ? 34 : 20);
-
-        // ABC legend item
-        ctx.fillStyle = "#d97706";
-        ctx.fillRect(legX + 8, legY, 12, 4);
-        ctx.fillStyle = "#1e293b";
-        ctx.font = "10px -apple-system, sans-serif";
-        ctx.textAlign = "left";
-        ctx.fillText("ABC Algorithm", legX + 26, legY + 5);
-
-        // Random Search legend item
-        if (compareRandomSearch) {
-          ctx.fillStyle = "#2563eb";
-          ctx.fillRect(legX + 8, legY + 15, 12, 4);
-          ctx.fillStyle = "#1e293b";
-          ctx.fillText("Random Search", legX + 26, legY + 20);
-        }
+        // Plot ABC curve (Amber)
+        plotSeries(dataABC, "#F5A524", "rgba(245, 165, 36, 0.08)");
       }
 
       // 22. Event Listeners and Initial Setup
-
-      // Problem Dropdown Change
       if (problemSelect) {
         problemSelect.addEventListener("change", (e) => {
           stopPlayback();
@@ -3180,19 +3486,20 @@
           }
 
           resetColony();
-          appendLog("PROBLEM", `Selected ${prob.name} 2D (${prob.description}). Colony reset.`, "param");
+          appendLog("PROBLEM", `Selected ${prob.name} 2D. Colony reset.`, "param");
         });
       }
 
-      // Granularity selector
       if (granularitySelect) {
         granularitySelect.addEventListener("change", (e) => {
           granularity = e.target.value;
-          appendLog("PARAM", `Stepping granularity switched to: ${granularity === 'bee' ? 'Single bee' : 'Phase'} mode.`, "param");
+          if (granularityHint) {
+            granularityHint.textContent = (granularity === 'bee' ? 'Single bee' : 'Phase');
+          }
+          appendLog("PARAM", `Granularity switched to: ${granularity === 'bee' ? 'Single bee' : 'Phase'} mode.`, "param");
         });
       }
 
-      // Compare with Random Search toggle
       if (toggleRandomSearch) {
         toggleRandomSearch.addEventListener("change", (e) => {
           compareRandomSearch = e.target.checked;
@@ -3205,14 +3512,12 @@
         });
       }
 
-      // Run Self-Test button
       if (btnSelfTest) {
         btnSelfTest.addEventListener("click", () => {
           runSelfTest();
         });
       }
 
-      // Parameter Inputs Validation & Reset on Change
       const paramInputs = [
         { el: snInput, name: "Food sources SN" },
         { el: limitInput, name: "Abandonment Limit" },
@@ -3238,14 +3543,12 @@
         el.addEventListener("change", onParamChange);
       });
 
-      // Play/Pause Button handler
       if (btnPlayPause) {
         btnPlayPause.addEventListener("click", () => {
           togglePlayPause();
         });
       }
 
-      // Step Button handlers
       if (btnStep) {
         btnStep.addEventListener("click", () => {
           stopPlayback();
@@ -3259,7 +3562,6 @@
         });
       }
 
-      // Reset Button handler
       if (btnReset) {
         btnReset.addEventListener("click", () => {
           stopPlayback();
@@ -3267,10 +3569,15 @@
         });
       }
 
-      // Initial Colony Setup
+      // Initial colony setup
       resetColony();
+      updateSpeedDisplay(parseInt(speedSlider ? speedSlider.value : 100, 10));
 
-      // Redraw chart on window resize
+      // KaTeX Initial Render
+      setTimeout(() => {
+        renderMath();
+      }, 300);
+
       window.addEventListener("resize", () => {
         drawConvergenceChart();
       });
